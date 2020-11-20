@@ -3,3 +3,5 @@
 ^\.Rproj\.user$
 ^under_constr$
 ^\.travis\.yml$
+^codecov\.yml$
+^armmr\.Rproj$
