@@ -17,7 +17,11 @@
 # lme4::nobars
 # -------------------*
 
-
+#'
+#' @importFrom stats as.formula formula model.matrix reformulate rnorm
+#' @importFrom stats runif sd terms terms.formula
+#' @importFrom utils head
+#'
 anyBars <- function (term) {
     any(c("|", "||") %in% all.names(term))
 }

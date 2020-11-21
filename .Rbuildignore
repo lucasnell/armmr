@@ -5,3 +5,7 @@
 ^\.travis\.yml$
 ^codecov\.yml$
 ^armmr\.Rproj$
+^CRAN-RELEASE$
+^README\.Rmd$
+^cran-comments\.md$
+^NEWS\.md$

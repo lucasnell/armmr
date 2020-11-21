@@ -1,6 +1,6 @@
 Package: armmr
 Type: Package
-Title: Simulate and analyze replicate time series.
+Title: Analyze replicate community time series
 Version: 0.0.0.9000
 Date: 2018-02-26
 Authors@R: as.person(c(
