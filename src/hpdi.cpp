@@ -1,7 +1,9 @@
 #include <RcppEigen.h>
 #include "armmr_types.h"
 
+
 using namespace Rcpp;
+
 
 
 
