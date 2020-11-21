@@ -1,11 +1,9 @@
-#include <RcppArmadillo.h>
+#include <RcppEigen.h>
+#include "armmr_types.h"
 
 using namespace Rcpp;
 
-//[[Rcpp::depends(RcppArmadillo)]]
-//[[Rcpp::plugins(cpp11)]]
 
-typedef arma::uword uint_t;
 
 
 /*
@@ -28,18 +26,19 @@ NumericVector hpdi(NumericVector input, const double& prob = 0.95) {
 
     NumericVector vals = input.sort();
 
-    uint_t n = input.size();
+    uint32 n = input.size();
 
-    uint_t gap = std::round(static_cast<double>(n) * prob);
+    uint32 gap = std::round(static_cast<double>(n) * prob);
     if (gap > (n - 1)) gap = n - 1;
     if (gap < 1) gap = 1;
 
-    arma::uvec init = arma::regspace<arma::uvec>(0, n - gap - 1);
+    NumericVector init(n - gap);
+    for (uint32 i = 0; i < init.size(); i++) init(i) = i;
 
     double min_d = vals[init(0) + gap] - vals[init(0)];
-    uint_t ind = 0;
+    uint32 ind = 0;
 
-    for (uint_t i = 1; i < init.n_elem; i++) {
+    for (uint32 i = 1; i < init.size(); i++) {
         double d = vals[init(i) + gap] - vals[init(i)];
         if (d < min_d) {
             min_d = d;

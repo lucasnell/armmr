@@ -1,7 +1,7 @@
 #ifndef __GEMINO_PCG_H
 #define __GEMINO_PCG_H
 
-#include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <vector>
 #include <string>
 #include "pcg/pcg_extras.hpp"  // pcg 128-bit integer type

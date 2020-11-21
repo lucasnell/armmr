@@ -2,7 +2,6 @@
 
 S3method(print,armmMod)
 export(armm)
-export(generate_pars)
 export(sim_pops)
 export(sim_pops_ar)
 import(Rcpp)

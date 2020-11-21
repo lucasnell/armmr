@@ -12,7 +12,7 @@ sim_pops_ar(
   rho_mat,
   vcv_cube,
   obs_sigma,
-  n_cores = 1L
+  n_threads = 1L
 )
 }
 \arguments{
@@ -38,7 +38,7 @@ and slices associated with a given location.}
 
 \item{obs_sigma}{Vector of standard deviations of observation error for each species.}
 
-\item{n_cores}{Number of cores to use. Defaults to 1.}
+\item{n_threads}{Number of cores to use. Defaults to 1.}
 }
 \value{
 A 3-dimensional array.
@@ -53,15 +53,18 @@ with a given species and columns associated with a given location.
 See descriptions for \code{X} and \code{vcv_cube}.
 }
 \examples{
-X <- matrix(rlnorm(20), 10)
-N0 <- matrix(rep(log(10), 6), 3, 2)
-b0 <- matrix(rep(log(100), 6), 3, 2)
-b1 <- matrix(rep(0.1, 6), 3, 2)
-rho <- matrix(rep(0.2, 6), 3, 2)
-vcv <- diag(3)
+n_spp <- 3
+max_t <- 10
+n_locs <- 2
+X <- matrix(rlnorm(max_t * n_locs), max_t, n_locs)
+N0 <- matrix(log(10), n_spp, n_locs)
+b0 <- matrix(log(100), n_spp, n_locs)
+b1 <- matrix(0.1, n_spp, n_locs)
+rho <- matrix(0.2, n_spp, n_locs)
+vcv <- diag(n_spp)
 vcv[lower.tri(vcv)] <- vcv[upper.tri(vcv)] <- 0.1
-vcv <- array(vcv, dim = c(3, 3, 2))
-obs <- rep(0.1, 3)
+vcv <- replicate(n_locs, vcv, simplify = FALSE)
+obs <- rep(0.1, n_spp)
 sim_pops_ar(X, N0, b0, b1, rho, vcv, obs)
 
 }

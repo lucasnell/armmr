@@ -26,8 +26,7 @@ LinkingTo:
     rstan (>= 2.18.1),
     BH (>= 1.66.0-1),
     Rcpp (>= 0.12.16),
-    RcppEigen (>= 0.3.3.4.0),
-    RcppArmadillo
+    RcppEigen (>= 0.3.3.4.0)
 Suggests:
     parallel,
     knitr,

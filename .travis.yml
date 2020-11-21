@@ -49,7 +49,6 @@ matrix:
     cache: packages
     r_binary_packages:
       - Rcpp
-      - RcppArmadillo
       - knitr
   - r: oldrel
     os: linux

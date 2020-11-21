@@ -3109,7 +3109,7 @@ public:
 
                 stan::model::assign(log_lik, 
                             stan::model::cons_list(stan::model::index_uni(i), stan::model::nil_index_list()), 
-                            (poisson_log_log(get_base1(y, i, "y", 1), get_base1(y_pred, i, "y_pred", 1)) + lognormal_log(get_base1(y_pred, i, "y_pred", 1), get_base1(ly_pred, i, "ly_pred", 1), sig_obs)), 
+                            (poisson_log(get_base1(y, i, "y", 1), get_base1(y_pred, i, "y_pred", 1)) + lognormal_log(get_base1(y_pred, i, "y_pred", 1), get_base1(ly_pred, i, "ly_pred", 1), sig_obs)), 
                             "assigning variable log_lik");
             }
             stan::math::assign(log_lik_sum, sum(log_lik));

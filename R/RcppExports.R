@@ -5,6 +5,10 @@ hpdi <- function(input, prob = 0.95) {
     .Call(`_armmr_hpdi`, input, prob)
 }
 
+make_chol_decomp_cpp <- function(vcv_cube) {
+    .Call(`_armmr_make_chol_decomp_cpp`, vcv_cube)
+}
+
 #' Multiple populations simulated using AR1 process.
 #'
 #' Input and output N values are logged.
@@ -27,7 +31,7 @@ hpdi <- function(input, prob = 0.95) {
 #'     It should have rows and columns associated with a given species,
 #'     and slices associated with a given location.
 #' @param obs_sigma Vector of standard deviations of observation error for each species.
-#' @param n_cores Number of cores to use. Defaults to 1.
+#' @param n_threads Number of cores to use. Defaults to 1.
 #'
 #'
 #'
@@ -42,86 +46,23 @@ hpdi <- function(input, prob = 0.95) {
 #' @export
 #'
 #' @examples
-#' X <- matrix(rlnorm(20), 10)
-#' N0 <- matrix(rep(log(10), 6), 3, 2)
-#' b0 <- matrix(rep(log(100), 6), 3, 2)
-#' b1 <- matrix(rep(0.1, 6), 3, 2)
-#' rho <- matrix(rep(0.2, 6), 3, 2)
-#' vcv <- diag(3)
+#' n_spp <- 3
+#' max_t <- 10
+#' n_locs <- 2
+#' X <- matrix(rlnorm(max_t * n_locs), max_t, n_locs)
+#' N0 <- matrix(log(10), n_spp, n_locs)
+#' b0 <- matrix(log(100), n_spp, n_locs)
+#' b1 <- matrix(0.1, n_spp, n_locs)
+#' rho <- matrix(0.2, n_spp, n_locs)
+#' vcv <- diag(n_spp)
 #' vcv[lower.tri(vcv)] <- vcv[upper.tri(vcv)] <- 0.1
-#' vcv <- array(vcv, dim = c(3, 3, 2))
-#' obs <- rep(0.1, 3)
+#' vcv <- replicate(n_locs, vcv, simplify = FALSE)
+#' obs <- rep(0.1, n_spp)
 #' sim_pops_ar(X, N0, b0, b1, rho, vcv, obs)
 #'
-sim_pops_ar <- function(X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_cores = 1L) {
-    .Call(`_armmr_sim_pops_ar`, X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_cores)
+sim_pops_ar <- function(X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_threads = 1L) {
+    .Call(`_armmr_sim_pops_ar`, X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_threads)
 }
-
-#' Melt a cube into a single data frame.
-#'
-#' @param C Three-dimensional array that you want to melt into a two-dimensional
-#'     data frame.
-#'
-#' @return A melted data frame.
-#'
-#' @noRd
-#'
-melt_cube <- function(C) {
-    .Call(`_armmr_melt_cube`, C)
-}
-
-#' Generate parameter values for simulations.
-#'
-#' Generate parameter values to simulate multi-location, multi-species time series data.
-#'
-#'
-#' @param n_time Number of time steps.
-#' @param n_loc Number of locations.
-#' @param n_spp Number of species.
-#' @param mean_b0 Mean for the b0 parameter relating X to N.
-#' @param mean_b1 Mean for the b1 parameter relating X to N.
-#' @param mean_rho Mean for the rho parameter relating X to N.
-#'     This parameter is on the inverse logit scale.
-#' @param sigma_b0 Standard deviation for the b0 parameter relating X to N.
-#' @param sigma_b1 Standard deviation for the b1 parameter relating X to N.
-#' @param sigma_rho Standard deviation for the rho parameter relating X to N.
-#'     This parameter is on the inverse logit scale.
-#' @param sigma_eps Standard deviation for the epsilon parameter.
-#' @param sigma_obs Standard deviation for observation error. Defaults to 0.
-#' @param corr_method Method for determining correlations between species.
-#'     Options are "none", "phylo", or "random". Defaults to "none".
-#'
-#'
-#' @export
-#'
-#' @examples
-#' generate_pars(10, 2, 3,
-#'               mean_b0 = log(100),
-#'               mean_b1 = 0.1,
-#'               mean_rho = 0.25,
-#'               sigma_b0 = 0.1,
-#'               sigma_b1 = 0.1,
-#'               sigma_rho = 0.1,
-#'               sigma_eps = 0.1)
-#'
-#'
-generate_pars <- function(n_time, n_loc, n_spp, mean_b0, mean_b1, mean_rho, sigma_b0, sigma_b1, sigma_rho, sigma_eps, sigma_obs = 0, corr_method = "none") {
-    .Call(`_armmr_generate_pars`, n_time, n_loc, n_spp, mean_b0, mean_b1, mean_rho, sigma_b0, sigma_b1, sigma_rho, sigma_eps, sigma_obs, corr_method)
-}
-
-#' Simulate populations with competition.
-#'
-#' This does most of the work for the R-exported function below.
-#'
-#' @param N Output matrix of population abundances.
-#' @param distr Normal distribution generator from C++ STL.
-#' @param eng pcg32 object that generates random numbers.
-#' @inheritParams sim_pops
-#'
-#'
-#' @noRd
-#'
-NULL
 
 #' Simulate populations with competition.
 #'

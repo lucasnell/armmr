@@ -1,10 +1,8 @@
-#include <RcppArmadillo.h>
-#include <pcg/pcg_random.hpp> // pcg prng
+#include <RcppEigen.h>
+#include <cmath>   // exp
 #include <random>  // normal distribution
 #include <vector>  // vector class
-#ifdef _OPENMP
-#include <omp.h>  // OpenMP
-#endif
+#include <pcg/pcg_random.hpp> // pcg prng
 
 #include "armmr_types.h"
 #include "pcg.h"  // pcg seeding
@@ -12,41 +10,6 @@
 using namespace Rcpp;
 
 
-
-
-//' Simulate populations with competition.
-//'
-//' This does most of the work for the R-exported function below.
-//'
-//' @param N Output matrix of population abundances.
-//' @param distr Normal distribution generator from C++ STL.
-//' @param eng pcg32 object that generates random numbers.
-//' @inheritParams sim_pops
-//'
-//'
-//' @noRd
-//'
-void sim_pops_(arma::mat& N,
-               const arma::rowvec& r,
-               const arma::mat& alpha,
-               std::normal_distribution<double>& distr,
-               pcg32& eng) {
-
-    uint32 n_spp = N.n_cols;
-    uint32 max_t = N.n_rows - 1;
-
-    arma::rowvec rnd(n_spp, arma::fill::zeros);
-
-    for (uint32 t = 0; t < max_t; t++) {
-
-        for (uint32 i = 0; i < rnd.n_elem; i++) rnd(i) = distr(eng);
-
-        N.row(t+1) = N.row(t) % arma::exp(r - N.row(t) * alpha + rnd);
-    }
-
-    return;
-
-}
 
 
 
@@ -65,21 +28,38 @@ void sim_pops_(arma::mat& N,
 //' sim_pops(10, c(10, 10), c(0.5, 0.5), matrix(rep(1e-3, 4), 2, 2), 0.25)
 //'
 //[[Rcpp::export]]
-arma::mat sim_pops(const uint32& max_t, const arma::rowvec& N0, const arma::rowvec& r,
-                   const arma::mat& alpha, const double& sigma) {
+MatrixXd sim_pops(const uint32& max_t,
+                  const Map<RowVectorXd> N0,
+                  const Map<RowVectorXd> r,
+                  const Map<MatrixXd> alpha,
+                  const double& sigma) {
 
-    uint32 n_spp = N0.n_elem;
-    if (r.n_elem != n_spp || alpha.n_rows != n_spp || alpha.n_cols != n_spp) {
+    uint32 n_spp = N0.size();
+    if (r.size() != n_spp || alpha.rows() != n_spp || alpha.cols() != n_spp) {
         stop("N0, r, and alpha lengths must be the same.");
     }
     pcg32 eng = seeded_pcg();
 
-    arma::mat N(max_t + 1, n_spp);
-    N.row(0) = N0;
+    MatrixXd N(max_t + 1, n_spp);
+    for (uint32 i = 0; i < n_spp; i++) N(0,i) = N0(i);
 
-    std::normal_distribution<double> distr(0.0, sigma);
+    std::normal_distribution<double> distr;
+    if (sigma > 0) distr = std::normal_distribution<double>(0.0, sigma);
 
-    sim_pops_(N, r, alpha, distr, eng);
+    RowVectorXd rnd = RowVectorXd::Zero(n_spp);
+    RowVectorXd tmp(n_spp);
+
+    for (uint32 t = 0; t < max_t; t++) {
+
+        if (sigma > 0) {
+            for (uint32 i = 0; i < rnd.size(); i++) rnd(i) = distr(eng);
+        }
+
+        tmp = r - N.row(t) * alpha + rnd;
+
+        N.row(t+1) = N.row(t).array() * tmp.array().exp();
+
+    }
 
     return N;
 

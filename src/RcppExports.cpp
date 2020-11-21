@@ -3,7 +3,6 @@
 
 #include "armmr_types.h"
 #include <RcppEigen.h>
-#include <RcppArmadillo.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -20,67 +19,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// make_chol_decomp_cpp
+std::vector<MatrixXd> make_chol_decomp_cpp(const List& vcv_cube);
+RcppExport SEXP _armmr_make_chol_decomp_cpp(SEXP vcv_cubeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type vcv_cube(vcv_cubeSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_chol_decomp_cpp(vcv_cube));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sim_pops_ar
-arma::cube sim_pops_ar(const arma::mat& X, const arma::mat& N0_mat, const arma::mat& b0_mat, const arma::mat& b1_mat, const arma::mat& rho_mat, const arma::cube& vcv_cube, const arma::vec& obs_sigma, const uint32& n_cores);
-RcppExport SEXP _armmr_sim_pops_ar(SEXP XSEXP, SEXP N0_matSEXP, SEXP b0_matSEXP, SEXP b1_matSEXP, SEXP rho_matSEXP, SEXP vcv_cubeSEXP, SEXP obs_sigmaSEXP, SEXP n_coresSEXP) {
+std::vector<MatrixXd> sim_pops_ar(const Map<MatrixXd> X, const Map<MatrixXd> N0_mat, const Map<MatrixXd> b0_mat, const Map<MatrixXd> b1_mat, const Map<MatrixXd> rho_mat, const List& vcv_cube, const Map<VectorXd> obs_sigma, const uint32& n_threads);
+RcppExport SEXP _armmr_sim_pops_ar(SEXP XSEXP, SEXP N0_matSEXP, SEXP b0_matSEXP, SEXP b1_matSEXP, SEXP rho_matSEXP, SEXP vcv_cubeSEXP, SEXP obs_sigmaSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N0_mat(N0_matSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type b0_mat(b0_matSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type b1_mat(b1_matSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type rho_mat(rho_matSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type vcv_cube(vcv_cubeSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type obs_sigma(obs_sigmaSEXP);
-    Rcpp::traits::input_parameter< const uint32& >::type n_cores(n_coresSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_pops_ar(X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_cores));
-    return rcpp_result_gen;
-END_RCPP
-}
-// melt_cube
-DataFrame melt_cube(const arma::cube& C);
-RcppExport SEXP _armmr_melt_cube(SEXP CSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::cube& >::type C(CSEXP);
-    rcpp_result_gen = Rcpp::wrap(melt_cube(C));
-    return rcpp_result_gen;
-END_RCPP
-}
-// generate_pars
-List generate_pars(const uint32& n_time, const uint32& n_loc, const uint32& n_spp, const double& mean_b0, const double& mean_b1, const double& mean_rho, const double& sigma_b0, const double& sigma_b1, const double& sigma_rho, const double& sigma_eps, const double& sigma_obs, const std::string& corr_method);
-RcppExport SEXP _armmr_generate_pars(SEXP n_timeSEXP, SEXP n_locSEXP, SEXP n_sppSEXP, SEXP mean_b0SEXP, SEXP mean_b1SEXP, SEXP mean_rhoSEXP, SEXP sigma_b0SEXP, SEXP sigma_b1SEXP, SEXP sigma_rhoSEXP, SEXP sigma_epsSEXP, SEXP sigma_obsSEXP, SEXP corr_methodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint32& >::type n_time(n_timeSEXP);
-    Rcpp::traits::input_parameter< const uint32& >::type n_loc(n_locSEXP);
-    Rcpp::traits::input_parameter< const uint32& >::type n_spp(n_sppSEXP);
-    Rcpp::traits::input_parameter< const double& >::type mean_b0(mean_b0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type mean_b1(mean_b1SEXP);
-    Rcpp::traits::input_parameter< const double& >::type mean_rho(mean_rhoSEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma_b0(sigma_b0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma_b1(sigma_b1SEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma_rho(sigma_rhoSEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma_eps(sigma_epsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma_obs(sigma_obsSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type corr_method(corr_methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(generate_pars(n_time, n_loc, n_spp, mean_b0, mean_b1, mean_rho, sigma_b0, sigma_b1, sigma_rho, sigma_eps, sigma_obs, corr_method));
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type N0_mat(N0_matSEXP);
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type b0_mat(b0_matSEXP);
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type b1_mat(b1_matSEXP);
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type rho_mat(rho_matSEXP);
+    Rcpp::traits::input_parameter< const List& >::type vcv_cube(vcv_cubeSEXP);
+    Rcpp::traits::input_parameter< const Map<VectorXd> >::type obs_sigma(obs_sigmaSEXP);
+    Rcpp::traits::input_parameter< const uint32& >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_pops_ar(X, N0_mat, b0_mat, b1_mat, rho_mat, vcv_cube, obs_sigma, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
 // sim_pops
-arma::mat sim_pops(const uint32& max_t, const arma::rowvec& N0, const arma::rowvec& r, const arma::mat& alpha, const double& sigma);
+MatrixXd sim_pops(const uint32& max_t, const Map<RowVectorXd> N0, const Map<RowVectorXd> r, const Map<MatrixXd> alpha, const double& sigma);
 RcppExport SEXP _armmr_sim_pops(SEXP max_tSEXP, SEXP N0SEXP, SEXP rSEXP, SEXP alphaSEXP, SEXP sigmaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const uint32& >::type max_t(max_tSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type N0(N0SEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const Map<RowVectorXd> >::type N0(N0SEXP);
+    Rcpp::traits::input_parameter< const Map<RowVectorXd> >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
     rcpp_result_gen = Rcpp::wrap(sim_pops(max_t, N0, r, alpha, sigma));
     return rcpp_result_gen;
@@ -94,9 +71,8 @@ RcppExport SEXP _rcpp_module_boot_stan_fit4mm_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_armmr_hpdi", (DL_FUNC) &_armmr_hpdi, 2},
+    {"_armmr_make_chol_decomp_cpp", (DL_FUNC) &_armmr_make_chol_decomp_cpp, 1},
     {"_armmr_sim_pops_ar", (DL_FUNC) &_armmr_sim_pops_ar, 8},
-    {"_armmr_melt_cube", (DL_FUNC) &_armmr_melt_cube, 1},
-    {"_armmr_generate_pars", (DL_FUNC) &_armmr_generate_pars, 12},
     {"_armmr_sim_pops", (DL_FUNC) &_armmr_sim_pops, 5},
     {"_rcpp_module_boot_stan_fit4armm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_mod, 0},
