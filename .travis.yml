@@ -1,56 +1,56 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+language: r
+sudo: false
+r: devel
+cache: packages
 
-language: R
-
-
-# safe list
-branches:
-  only:
-  - master
-  - develop
+latex: true
 
 
-
-# NOTES:
-# Not doing devel on osx because CRAN doesn’t publish OSX binary packages for r-devel.
-# Including `r_binary_packages` in oldrel caused "number of columns of matrices must
-#     match" error
-
-
+env:
+  matrix:
+    - CXX_OLEVEL=2 CXX=clang++
 
 matrix:
   include:
-  - r: devel
-    os: linux
-    cache: packages
-  - r: release
-    os: linux
-    cache: packages
-    env:
-      - PKG_TARBALL=armmr_0.0.0.9000.tar.gz
-    r_packages:
-      - covr
-      - pkgdown
-    after_success:
-      - Rscript -e 'library(covr); codecov()'
-      - tar -C .. -xf $PKG_TARBALL
-      - rm -rf jackalope.Rcheck
-      - Rscript -e 'pkgdown::build_site()'
-    deploy:
-      - provider: pages
-        skip-cleanup: true
-        github-token: $GITHUB_TOKEN
-        keep-history: false
-        local-dir: docs
-        on:
-          branch: master
-  - r: release
-    os: osx
-    cache: packages
-    r_binary_packages:
-      - Rcpp
-      - knitr
-  - r: oldrel
-    os: linux
-  - r: oldrel
-    os: osx
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-5.0' ]
+          packages:
+            - llvm-5.0-dev
+      env:
+        - CXX_OLEVEL=2 CXX=clang++
+
+
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -q
+  - mkdir -p ~/.R/
+  - echo "CXX = `R CMD config CXX`" >> ~/.R/Makevars
+  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -pedantic -g0 -flto -stdlib=libc++" >> ~/.R/Makevars
+  - echo "LDFLAGS += -flto -stdlib=libc++" >> ~/.R/Makevars
+  - export CLANG_EXTRA_ARG=""
+  - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
+  - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
+  - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
+
+script:
+  - |
+    travis_wait 42 R CMD build .
+    travis_wait 59 R CMD check armmr*tar.gz
+
+after_script:
+  - tar -ztvf armmr_*.tar.gz
+  - echo ${NOT_CRAN}
+
+after_success:
+  - travis_wait 40 tar -C .. -xf $PKG_TARBALL
+
+after_failure:
+- cat armmr.Rcheck/00*
+
+
+
+
+# sudo apt install devscripts
