@@ -38,8 +38,9 @@ set.seed(1) # for keeping the printing of `reference` below the same
 ### Stable version
 
 ```{r install-stable}
-# To install the latest stable version from CRAN:
-install.packages("armmr")
+# < armmr is not on CRAN yet >
+# # To install the latest stable version from CRAN:
+# install.packages("armmr")
 ```
 
 ### Development version

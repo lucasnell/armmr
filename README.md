@@ -6,7 +6,7 @@ has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![Build
 status](https://travis-ci.com/lucasnell/armmr.svg?branch=master)](https://travis-ci.com/lucasnell/armmr)
-<!-- [![codecov](https://codecov.io/gh/lucasnell/armmr/branch/master/graph/badge.svg)](https://codecov.io/gh/lucasnell/armmr) -->
+<!-- [![Codecov test coverage](https://codecov.io/gh/lucasnell/armmr/branch/master/graph/badge.svg)](https://codecov.io/gh/lucasnell/armmr?branch=master) -->
 <!-- [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/armmr)](https://cran.r-project.org/package=armmr) -->
 
 # armmr <img src="man/figures/logo.png" align="right" alt="" width="120" />
@@ -18,8 +18,9 @@ status](https://travis-ci.com/lucasnell/armmr.svg?branch=master)](https://travis
 ### Stable version
 
 ``` r
-# To install the latest stable version from CRAN:
-install.packages("armmr")
+# < armmr is not on CRAN yet >
+# # To install the latest stable version from CRAN:
+# install.packages("armmr")
 ```
 
 ### Development version
