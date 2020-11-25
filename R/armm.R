@@ -30,17 +30,17 @@ f_deparse <- function(form) {
 #'
 expand_inters <- function(x) {
     if (inherits(x, "call") || inherits(x, "name") || inherits(x, "formula")) {
-        fs <- f_deparse(x)
+        x <- f_deparse(x)
     } else if (isTRUE(x == 1)) {
         return("1")
     } else if (!inherits(x, "character")) {
         stop("Must be character, formula, name, call, or 1.")
     }
-    if (!grepl("~", fs)) fs <- paste("DEPENDENT_VARIABLE ~", fs)
-    f <- as.formula(fs)
+    if (!grepl("~", x)) x <- paste("DEPENDENT_VARIABLE ~", x)
+    f <- as.formula(x)
     fo <- attr(terms.formula(f), "term.labels")
     # Add back intercept if necessary:
-    if ("1" %in% trimws(strsplit(fs, "[\\+|\\*|\\~]")[[1]])) {
+    if ("1" %in% trimws(strsplit(x, "[\\+|\\*|\\~]")[[1]])) {
         fo <- c("1", fo)
     }
     return(fo)
@@ -136,9 +136,13 @@ make_check_rand <- function(fixed, rand_chunks, data) {
 #'
 #' @noRd
 #'
-n_cols_per_cov <- function(fixed, formula, data) {
+n_cols_per_cov <- function(vars, formula, data) {
 
-    ncpc <- f_apply(fixed,
+    if (any(grepl("\\*", vars))) {
+        stop("\nINTERNAL ERROR: `n_cols_per_cov` shouldn't contain asterisks")
+    }
+
+    ncpc <- f_apply(vars,
                              function(v) {
                                  if (v == "0") return(0L)
                                  if (v == "1") return(1L)
@@ -147,9 +151,9 @@ n_cols_per_cov <- function(fixed, formula, data) {
                                  z <- model.matrix(f, data = data)
                                  return(ncol(z))
                              })
-    names(ncpc) <- fixed
+    names(ncpc) <- vars
     if (sum(is_fctr <- ncpc > 1) > 0) {
-        has_inter <- "1" %in% fixed
+        has_inter <- "1" %in% vars
         first_fctr <- TRUE
         for (i in which(is_fctr)) {
             if (first_fctr) {
@@ -852,7 +856,7 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #' @importFrom rstan optimizing
 #'
 #' @examples
-#' formula <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
+#' form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
 #' time_form <- ~ t | tg + g1
 #' ar_form <- ~ g1
 #' y_scale <- ~ g1
@@ -873,7 +877,7 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #'     sapply(as.integer(interaction(data$g1, data$g2)),
 #'            function(i) x2_coefs[i])
 #'
-#' mod <- armm(formula, time_form, ar_form, y_scale, data,
+#' mod <- armm(form, time_form, ar_form, y_scale, data,
 #'               rstan_control = list(chains = 1, iter = 100))
 #'
 armm <- function(formula,

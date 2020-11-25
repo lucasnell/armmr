@@ -211,8 +211,8 @@ nobs.armmMod <- function(object, ...) {
 #'
 #' @export
 family.armmMod <- function(object, ...) {
-    fam <- ifelse(is.null(object$call$distr), formals(armm)[["distr"]],
-                 object$call$distr)
+    fam <- ifelse(is.null(object$call$family), formals(armm)[["family"]],
+                 object$call$family)
     return(fam)
 }
 
