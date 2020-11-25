@@ -11,7 +11,7 @@ armm(
   y_scale,
   data = parent.frame(1L),
   obs_error = FALSE,
-  distr = "normal",
+  family = "normal",
   x_scale = TRUE,
   ar_bound = FALSE,
   hmc = TRUE,
@@ -65,7 +65,7 @@ By default, it uses the environment the function was executed in.}
 \item{obs_error}{Logical for whether to include observation error.
 Defaults to \code{FALSE}.}
 
-\item{distr}{String specifying the error distribution used.
+\item{family}{String specifying the error distribution used.
 Options are \code{"normal"} or \code{"lnorm_poisson"}. Defaults to \code{"normal"}.}
 
 \item{x_scale}{Logical for whether to scale the independent variable(s).

@@ -368,7 +368,7 @@ initial_input_checks <- function(formula,
                                  y_scale,
                                  data,
                                  obs_error,
-                                 distr,
+                                 family,
                                  ar_bound,
                                  x_scale,
                                  hmc,
@@ -396,8 +396,8 @@ initial_input_checks <- function(formula,
         stop("\nIn `armm`, the `obs_error` argument must be a logical ",
              "of length 1.", call. = FALSE)
     }
-    if (!inherits(distr, "character") || length(distr) != 1) {
-        stop("\nIn `armm`, the `distr` argument must be a character ",
+    if (!inherits(family, "character") || length(family) != 1) {
+        stop("\nIn `armm`, the `family` argument must be a character ",
              "of length 1.", call. = FALSE)
     }
     if (!inherits(ar_bound, "logical") || length(ar_bound) != 1) {
@@ -812,7 +812,7 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #'     By default, it uses the environment the function was executed in.
 #' @param obs_error Logical for whether to include observation error.
 #'     Defaults to `FALSE`.
-#' @param distr String specifying the error distribution used.
+#' @param family String specifying the error distribution used.
 #'     Options are `"normal"` or `"lnorm_poisson"`. Defaults to `"normal"`.
 #' @param x_scale Logical for whether to scale the independent variable(s).
 #'     Defaults to `TRUE`.
@@ -882,7 +882,7 @@ armm <- function(formula,
                     y_scale,
                     data = parent.frame(1L),
                     obs_error = FALSE,
-                    distr = "normal",
+                    family = "normal",
                     x_scale = TRUE,
                     ar_bound = FALSE,
                     hmc = TRUE,
@@ -914,10 +914,10 @@ armm <- function(formula,
 
     # Check for proper inputs:
     initial_input_checks(formula, time_form, ar_form, y_scale, data, obs_error,
-                         distr, ar_bound, x_scale, hmc, change, rstan_control)
+                         family, ar_bound, x_scale, hmc, change, rstan_control)
 
-    distr <- match.arg(tolower(distr), c("normal", "lnorm_poisson"))
-    if (distr != "normal") y_scale <- NULL # never scale if distr isn't normal
+    family <- match.arg(tolower(family), c("normal", "lnorm_poisson"))
+    if (family != "normal") y_scale <- NULL # never scale if family isn't normal
 
     # Checks for variables being same length and reorders by time if necessary
     obs_per <- check_len_sort_data(formula, time_form, ar_form, data)
@@ -928,7 +928,7 @@ armm <- function(formula,
     stan_data$change <- as.integer(change)
 
     # Checks for integers if using lnorm_poisson
-    if (distr == "lnorm_poisson") {
+    if (family == "lnorm_poisson") {
         if (any(stan_data$y != round(stan_data$y))) {
             stop("\nIn `armmr`, if using a lognormal Poisson distribution, the ",
                  "response variable must be integers.")
@@ -942,7 +942,7 @@ armm <- function(formula,
 
     # Now scale y variables if desired (only done for normal distribution):
     y_means_sds <- NULL
-    if (!is.null(y_scale) && distr == "normal") {
+    if (!is.null(y_scale) && family == "normal") {
         if (inherits(y_scale, "formula")) y_scale <- all.vars(y_scale)
         y_scale_var_vec <- tryCatch(
             eval(parse(text = y_scale), data),
@@ -974,7 +974,7 @@ armm <- function(formula,
 
 
     # UNCOMMENT BELOW ONCE STAN FILES CAN ACCEPT THE PRIORS
-    # ALSO ADJUST BELOW FUNCTION FOR IF `distr == "lnorm_poisson"`
+    # ALSO ADJUST BELOW FUNCTION FOR IF `family == "lnorm_poisson"`
     # # Adding priors to stan_data
     # prior_list <- set_priors(priors, stan_data, x_scale, y_scale)
     # for (n in names(prior_list)) stan_data[[n]] <- prior_list[[n]]
@@ -982,7 +982,7 @@ armm <- function(formula,
     # Assemble file name for stan file
     fn_chunks <- c(if (is.null(ar_form)) "mm" else "armm",
                    if (obs_error) "ss" else NULL,
-                   switch(distr, lnorm_poisson = "lnp", normal = NULL))
+                   switch(family, lnorm_poisson = "lnp", normal = NULL))
     stan_file <- paste(fn_chunks, collapse = "_")
     if (!stan_file %in% names(stanmodels)) {
         stop("\nYour specifications for autoregression, observation error, ",
