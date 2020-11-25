@@ -143,14 +143,14 @@ n_cols_per_cov <- function(vars, formula, data) {
     }
 
     ncpc <- f_apply(vars,
-                             function(v) {
-                                 if (v == "0") return(0L)
-                                 if (v == "1") return(1L)
-                                 f <- reformulate(v, f_deparse(formula[[2]]),
-                                                  intercept = FALSE)
-                                 z <- model.matrix(f, data = data)
-                                 return(ncol(z))
-                             })
+                    function(v) {
+                        if (v == "0") return(0L)
+                        if (v == "1") return(1L)
+                        f <- reformulate(v, f_deparse(formula[[2]]),
+                                         intercept = FALSE)
+                        z <- model.matrix(f, data = data)
+                        return(ncol(z))
+                    })
     names(ncpc) <- vars
     if (sum(is_fctr <- ncpc > 1) > 0) {
         has_inter <- "1" %in% vars
@@ -208,6 +208,8 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
     rand_info <- make_check_rand(fixed, rand_chunks, data)
     rand <- rand_info$rand
     rand_g <- rand_info$rand_g
+    rand_g <- rand_g[order(match(rand, fixed))]
+    rand <- rand[order(match(rand, fixed))]
 
     # Number of columns in model matrix for each covariate.
     # This will always be 1 unless the covariate is a factor.
@@ -249,11 +251,39 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
     b_groups <- get_ts_info(g_mat, start_end_mat,
                             "Random effects-grouping variables")
 
+    ff_form <- reformulate(fixed, f_deparse(formula[[2]]))
+
     info_list <- list(
         g_per_ff = g_per_ff,
         lev_per_g = lev_per_g,
-        b_groups = b_groups
+        b_groups = b_groups,
+        x = model.matrix(ff_form, data = data)
     )
+
+    rnd_names <- f_apply(1:length(rand),
+                         function(i) {
+                             start <- if (i==1) 1 else sum(ncpc[1:(i-1)])+1
+                             end <- start + ncpc[[i]] - 1
+                             vn <- colnames(out$x)[start:end]
+                             vg <- rand_g[[i]]
+                             # cat(sprintf("%i, %i\n", start, end))
+                             cbind(rep(vn, each = length(vg)),
+                                   rep(vg, length(vn)))
+                         }, rbind)
+    colnames(rnd_names) <- c("Name", "Groups")
+    rnd_names <- as.data.frame(rnd_names)
+
+    rnd_lvl_names <- f_apply(1:nrow(rnd_names),
+           function(i) {
+               dd <- rnd_names[i,]
+               z <- eval(parse(text = dd$Groups), data)
+               rownames(dd) <- NULL
+               cbind(dd, Level = levels(z))
+           }, rbind)
+
+    out$rnd_names <- rnd_names
+    out$rnd_lvl_names <- rnd_lvl_names
+
 
     return(info_list)
 }
@@ -554,12 +584,15 @@ check_len_sort_data <- function(formula,
 #'
 #' Output list has the following items:
 #'
-#' - `n_coef`:      number of coefficients (fixed effects + intercepts)
-#' - `g_per_ff`:    number of groups per fixed effect
-#' - `lev_per_g`:   number of levels per group (repeated by fixed effect)
-#' - `b_groups`:    grouping structure for betas
-#' - `x`:           predictor variables
-#' - `x_means_sds`: (optional) means and SDs of x variables if they were scaled
+#' - `n_coef`:        number of coefficients (fixed effects + intercepts)
+#' - `g_per_ff`:      number of groups per fixed effect
+#' - `lev_per_g`:     number of levels per group (repeated by fixed effect)
+#' - `b_groups`:      grouping structure for betas
+#' - `x`:             predictor variables
+#' - `x_means_sds`:   (optional) means and SDs of x variables if they were scaled
+#' - `rnd_names`:     (optional) names of random variables if random term(s) present
+#' - `rnd_lvl_names`: (optional) names of random variables and levels of
+#'                    grouping variables if random term(s) present
 #'
 #' @noRd
 #'
@@ -616,10 +649,8 @@ make_coef_objects <- function(formula, time_form, ar_form, data, obs_per,
 
     } else {
 
-        ff_form <- reformulate(fixed, f_deparse(formula[[2]]))
-
-        out <- form_info_w_rand(formula, fixed, rand_chunks, data, start_end_mat)
-        out$x <- model.matrix(ff_form, data = data)
+        out <- form_info_w_rand(formula, fixed, rand_chunks, data,
+                                start_end_mat)
         out$n_coef <- ncol(out$x)
 
 
@@ -628,14 +659,18 @@ make_coef_objects <- function(formula, time_form, ar_form, data, obs_per,
     # Set up groups of autoregressive parameters
     if (length(all.vars(ar_form)) == 0) {
         out$p_groups <- rep(1, nrow(start_end_mat))
+        out$ar_names <- "1"
     } else {
         out$p_groups <- do.call(interaction,
-                                      c(lapply(all.vars(ar_form), get, envir = data),
-                                        drop = TRUE))
+                                c(lapply(all.vars(ar_form), get, envir = data),
+                                  drop = TRUE))
         out$p_groups <- as.integer(out$p_groups)
         out$p_groups <- get_ts_info(out$p_groups, start_end_mat,
-                                          "Autoregressive term-grouping variables")
+                                    "Autoregressive term-grouping variables")
+        out$ar_names <- colnames(model.matrix(reformulate(
+            all.vars(ar_form), "y", intercept = FALSE), data))
     }
+
 
     # Adding other info:
     out$y <- eval(formula[[2]], envir = data)
@@ -863,19 +898,19 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #'
 #' set.seed(1)
 #' x1_coef <- 1.5
-#' x2_coefs <- runif(10, 1, 5)
+#' x3_coefs <- runif(10, 1, 5)
 #' data <- data.frame(g1 = factor(rep(1:5, each = 20)),
 #'                    g2 = factor(rep(2:1, each = 50)),
 #'                    y = rnorm(100),
 #'                    x1 = runif(100),
-#'                    x2 = rnorm(100),
-#'                    x3 = factor(rep(1:4, 25)),
+#'                    x2 = factor(rep(1:4, 25)),
+#'                    x3 = rnorm(100),
 #'                    t = rep(1:10, 10),
 #'                    tg = factor(rep(1:10, each = 10)))
 #' data$y <- data$y + data$x1 * x1_coef
-#' data$y <- data$y + data$x2 *
+#' data$y <- data$y + data$x3 *
 #'     sapply(as.integer(interaction(data$g1, data$g2)),
-#'            function(i) x2_coefs[i])
+#'            function(i) x3_coefs[i])
 #'
 #' mod <- armm(form, time_form, ar_form, y_scale, data,
 #'               rstan_control = list(chains = 1, iter = 100))
@@ -930,6 +965,15 @@ armm <- function(formula,
     stan_data <- make_coef_objects(formula, time_form, ar_form, data, obs_per,
                                    ar_bound, x_scale)
     stan_data$change <- as.integer(change)
+
+    # Extract AR names and (if applicable) random term names, then
+    # remove from `stan_data` because they're only useful in output object.
+    ar_names <- stan_data$ar_names
+    rnd_names <- stan_data$rnd_names
+    rnd_lvl_names <- stan_data$rnd_lvl_names
+    stan_data$ar_names <- NULL
+    stan_data$rnd_names <- NULL
+    stan_data$rnd_lvl_names <- NULL
 
     # Checks for integers if using lnorm_poisson
     if (family == "lnorm_poisson") {
@@ -1006,6 +1050,11 @@ armm <- function(formula,
 
     armmMod_obj <- new_armmMod(stan_fit, call_, hmc, x_means_sds,
                                y_means_sds, stan_data)
+
+    # Add AR and random-term names:
+    armmMod_obj$ar_names <- ar_names
+    armmMod_obj$rnd_names <- rnd_names
+    armmMod_obj$rnd_lvl_names <- rnd_lvl_names
 
     return(armmMod_obj)
 }
