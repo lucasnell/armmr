@@ -264,9 +264,8 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
                          function(i) {
                              start <- if (i==1) 1 else sum(ncpc[1:(i-1)])+1
                              end <- start + ncpc[[i]] - 1
-                             vn <- colnames(out$x)[start:end]
+                             vn <- colnames(info_list$x)[start:end]
                              vg <- rand_g[[i]]
-                             # cat(sprintf("%i, %i\n", start, end))
                              cbind(rep(vn, each = length(vg)),
                                    rep(vg, length(vn)))
                          }, rbind)
@@ -281,8 +280,8 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
                cbind(dd, Level = levels(z))
            }, rbind)
 
-    out$rnd_names <- rnd_names
-    out$rnd_lvl_names <- rnd_lvl_names
+    info_list$rnd_names <- rnd_names
+    info_list$rnd_lvl_names <- rnd_lvl_names
 
 
     return(info_list)

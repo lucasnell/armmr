@@ -137,28 +137,28 @@ pass \emph{all} priors to replace these defaults.
 }
 
 \examples{
-formula <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
+form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
 time_form <- ~ t | tg + g1
 ar_form <- ~ g1
 y_scale <- ~ g1
 
 set.seed(1)
 x1_coef <- 1.5
-x2_coefs <- runif(10, 1, 5)
+x3_coefs <- runif(10, 1, 5)
 data <- data.frame(g1 = factor(rep(1:5, each = 20)),
                    g2 = factor(rep(2:1, each = 50)),
                    y = rnorm(100),
                    x1 = runif(100),
-                   x2 = rnorm(100),
-                   x3 = factor(rep(1:4, 25)),
+                   x2 = factor(rep(1:4, 25)),
+                   x3 = rnorm(100),
                    t = rep(1:10, 10),
                    tg = factor(rep(1:10, each = 10)))
 data$y <- data$y + data$x1 * x1_coef
-data$y <- data$y + data$x2 *
+data$y <- data$y + data$x3 *
     sapply(as.integer(interaction(data$g1, data$g2)),
-           function(i) x2_coefs[i])
+           function(i) x3_coefs[i])
 
-mod <- armm(formula, time_form, ar_form, y_scale, data,
+mod <- armm(form, time_form, ar_form, y_scale, data,
               rstan_control = list(chains = 1, iter = 100))
 
 }

@@ -26,6 +26,8 @@ new_armmMod <- function(.stan, .call, .hmc, .x_means_sds, .y_means_sds, .stan_da
 
 #' Print an `armmMod` object.
 #'
+#' @method print armmMod
+#'
 #' @export
 #'
 #' @noRd
@@ -39,6 +41,8 @@ print.armmMod <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 #' Note that `Lower` and `Upper` fields are from 95% HPDIs.
 #'
 #' @export
+#'
+#' @method summary armmMod
 #'
 #' @noRd
 #'
@@ -86,11 +90,19 @@ summary.armmMod <- function(object,
 }
 
 
-
+# #' @noRd
+# #'
+# #' @export
+# ranef <- function(object, ...) {
+#     UseMethod("ranef")
+# }
 # LEFT OFF HERE ----
 # ranef.armmMod <- function(object, ...)
 # object$stan
 
+# object$stan_data$b_groups
+#
+# names(object$stan)[grepl("beta", names(object$stan))]
 
 
 
@@ -107,14 +119,16 @@ autoreg <- function(object, ...) {
     UseMethod("autoreg")
 }
 #' @export
+#' @method autoreg armmMod
 #' @describeIn autoreg Autoregressive parameters for an `armmMod` object
+#' @importFrom stats median
 autoreg.armmMod <- function(object, ...) {
     if (is.null(eval(object$call$ar_form))) return(NULL)
     # Add `+0` to get all levels of groups:
     new_form <- as.formula(paste0(deparse(eval(object$call$ar_form)), "+0"))
     ar_names <- colnames(model.matrix(new_form, eval(object$call$data)))
     phis <- rstan::extract(object$stan, "phi")[[1]]
-    cis <- lapply(1:ncol(phis), function(i) armmr:::hpdi(phis[,i], 0.95))
+    cis <- lapply(1:ncol(phis), function(i) hpdi(phis[,i], 0.95))
     autoreg_df <- data.frame(Median = apply(phis, 2, median),
                            Lower = sapply(cis, function(x) x[["lower"]]),
                            Upper = sapply(cis, function(x) x[["upper"]]))
@@ -123,7 +137,10 @@ autoreg.armmMod <- function(object, ...) {
 }
 
 
-#' Extract fixed-effects estimates from an `armmMod` object
+
+
+#' Extract fixed-effects estimates.
+#'
 #'
 #' @param object A fitted model with class `armmMod`.
 #' @param ... Ignored.
@@ -131,11 +148,20 @@ autoreg.armmMod <- function(object, ...) {
 #' @return A dataframe of fixed-effects estimates.
 #'
 #' @export
+fixef <- function(object, ...) {
+    UseMethod("fixef")
+}
+
+#' @describeIn fixef Extract fixed-effects estimates from an `armmMod` object
+#'
+#' @method fixef armmMod
+#'
+#' @export
 fixef.armmMod <- function(object, ...) {
 
     A <- rstan::extract(object$stan, "alpha")[[1]]
 
-    cis <- lapply(1:ncol(A), function(i) armmr:::hpdi(A[,i], 0.95))
+    cis <- lapply(1:ncol(A), function(i) hpdi(A[,i], 0.95))
 
     fixef_df <- data.frame(Median = apply(A, 2, median),
                            Lower = sapply(cis, function(x) x[["lower"]]),
@@ -155,10 +181,14 @@ fixef.armmMod <- function(object, ...) {
 #' @param type Type of residuals, currently only `"response"` is programmed.
 #' @param \dots Additional arguments, ignored for method compatibility.
 #' @return A vector of residuals.
+#'
+#' @method residuals armmMod
+#'
+#' @importFrom stats residuals
 #' @export
-residuals.communityPGLMM <- function(object,
-                                     type = "response",
-                                     ...) {
+residuals.armmMod <- function(object,
+                              type = "response",
+                              ...) {
     if (family(object) == "normal"){
         y <- object$stan_data$y
         mu <- fitted(object)
@@ -175,6 +205,9 @@ residuals.communityPGLMM <- function(object,
 #' @param object A fitted model with class `armmMod`
 #' @param \dots Additional arguments, ignored for method compatibility.
 #' @return Fitted values.
+#'
+#' @method fitted armmMod
+#' @importFrom stats fitted
 #' @export
 fitted.armmMod <- function(object, ...) {
     if (!object$hmc) {
@@ -190,6 +223,8 @@ fitted.armmMod <- function(object, ...) {
 #' @inheritParams stats::model.frame
 #' @method model.frame armmMod
 #'
+#' @importFrom stats model.frame
+#'
 #' @export
 model.frame.armmMod <- function(formula, ...) {
     model.frame(formula$formula, formula$data)
@@ -199,6 +234,8 @@ model.frame.armmMod <- function(formula, ...) {
 #' Number of observations in an `armmMod` object
 #'
 #' @inheritParams stats::nobs
+#' @method nobs armmMod
+#' @importFrom stats nobs
 #' @export
 nobs.armmMod <- function(object, ...) {
     return(object$stan_data$n_obs)
@@ -208,6 +245,8 @@ nobs.armmMod <- function(object, ...) {
 #' Family for an `armmMod` object
 #'
 #' @inheritParams stats::family
+#' @method family armmMod
+#' @importFrom stats family
 #'
 #' @export
 family.armmMod <- function(object, ...) {
