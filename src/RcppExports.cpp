@@ -7,18 +7,6 @@
 
 using namespace Rcpp;
 
-// hpdi
-NumericVector hpdi(NumericVector input, const double& prob);
-RcppExport SEXP _armmr_hpdi(SEXP inputSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type input(inputSEXP);
-    Rcpp::traits::input_parameter< const double& >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(hpdi(input, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
 // make_chol_decomp_cpp
 std::vector<MatrixXd> make_chol_decomp_cpp(const List& vcv_cube);
 RcppExport SEXP _armmr_make_chol_decomp_cpp(SEXP vcv_cubeSEXP) {
@@ -48,18 +36,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sim_pops
-MatrixXd sim_pops(const uint32& max_t, const Map<RowVectorXd> N0, const Map<RowVectorXd> r, const Map<MatrixXd> alpha, const double& sigma);
-RcppExport SEXP _armmr_sim_pops(SEXP max_tSEXP, SEXP N0SEXP, SEXP rSEXP, SEXP alphaSEXP, SEXP sigmaSEXP) {
+// hpdi
+NumericVector hpdi(NumericVector input, const double& prob);
+RcppExport SEXP _armmr_hpdi(SEXP inputSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint32& >::type max_t(max_tSEXP);
-    Rcpp::traits::input_parameter< const Map<RowVectorXd> >::type N0(N0SEXP);
-    Rcpp::traits::input_parameter< const Map<RowVectorXd> >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const Map<MatrixXd> >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_pops(max_t, N0, r, alpha, sigma));
+    Rcpp::traits::input_parameter< NumericVector >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< const double& >::type prob(probSEXP);
+    rcpp_result_gen = Rcpp::wrap(hpdi(input, prob));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -70,10 +55,9 @@ RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_lnp_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4mm_mod();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_armmr_hpdi", (DL_FUNC) &_armmr_hpdi, 2},
     {"_armmr_make_chol_decomp_cpp", (DL_FUNC) &_armmr_make_chol_decomp_cpp, 1},
     {"_armmr_sim_pops_ar", (DL_FUNC) &_armmr_sim_pops_ar, 8},
-    {"_armmr_sim_pops", (DL_FUNC) &_armmr_sim_pops, 5},
+    {"_armmr_hpdi", (DL_FUNC) &_armmr_hpdi, 2},
     {"_rcpp_module_boot_stan_fit4armm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_lnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_lnp_mod, 0},
