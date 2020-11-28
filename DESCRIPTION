@@ -1,12 +1,11 @@
 Package: armmr
 Type: Package
-Title: Analyze replicate community time series
+Title: Analyze Replicate Community Time Series
 Version: 0.0.0.9000
-Date: 2018-02-26
-Authors@R: as.person(c(
-    "Joseph S Phillips <jsphillips2@wisc.edu> [aut]", 
-    "Lucas A Nell <lucas@lucasnell.com> [aut, cre]"
-  ))
+Date: 2020-11-28
+Authors@R: c(
+    person(c("Lucas", "A."), "Nell", , "lucas@lucasnell.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3209-0517")),
+    person(c("Joseph", "S."), "Phillips", , "joseph@mail.holar.is", role = c("aut")))
 Description: Some day, more details about what the package does will go here.
 License: GPL-3
 Encoding: UTF-8

@@ -10,7 +10,7 @@
 * macOS 10.15.7 (local), R 4.0.3
 
 
-* ubuntu 16.04 (on travis-ci), R-devel, R 4.0.0, R 3.6.3
+* ubuntu 16.04 (on travis-ci), R-devel, R 4.0.2, R 3.6.3
 * macOS 10.13.6 (on travis-ci), R 4.0.1, R 3.6.3
 * Windows (win-builder), R-devel, R 4.0.0, R 3.6.3
 * Rhub
