@@ -137,7 +137,7 @@ pass \emph{all} priors to replace these defaults.
 }
 
 \examples{
-form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
+form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2) + x4
 time_form <- ~ t | tg + g1
 ar_form <- ~ g1
 y_scale <- ~ g1
@@ -151,6 +151,7 @@ data <- data.frame(g1 = factor(rep(1:5, each = 20)),
                    x1 = runif(100),
                    x2 = factor(rep(1:4, 25)),
                    x3 = rnorm(100),
+                   x4 = rnorm(100),
                    t = rep(1:10, 10),
                    tg = factor(rep(1:10, each = 10)))
 data$y <- data$y + data$x1 * x1_coef

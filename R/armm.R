@@ -261,11 +261,12 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
     )
 
     rnd_names <- f_apply(1:length(rand),
-                         function(i) {
+                         function(j) {
+                             i <- which(names(ncpc) == rand[[j]])
                              start <- if (i==1) 1 else sum(ncpc[1:(i-1)])+1
                              end <- start + ncpc[[i]] - 1
                              vn <- colnames(info_list$x)[start:end]
-                             vg <- rand_g[[i]]
+                             vg <- rand_g[[j]]
                              cbind(rep(vn, each = length(vg)),
                                    rep(vg, length(vn)))
                          }, rbind)
@@ -890,7 +891,7 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #' @importFrom rstan optimizing
 #'
 #' @examples
-#' form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2)
+#' form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2) + x4
 #' time_form <- ~ t | tg + g1
 #' ar_form <- ~ g1
 #' y_scale <- ~ g1
@@ -904,6 +905,7 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #'                    x1 = runif(100),
 #'                    x2 = factor(rep(1:4, 25)),
 #'                    x3 = rnorm(100),
+#'                    x4 = rnorm(100),
 #'                    t = rep(1:10, 10),
 #'                    tg = factor(rep(1:10, each = 10)))
 #' data$y <- data$y + data$x1 * x1_coef
