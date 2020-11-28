@@ -143,7 +143,7 @@ autoreg.armmMod <- function(object, ...) {
 #' @title Extract fixed-effects estimates from an `armmMod` object
 #' @aliases fixef fixed.effects fixef.armmMod
 #' @docType methods
-#' @param object A fitted model with class armmMod.
+#' @param object A fitted model with class `armmMod`.
 #' @param ... Ignored.
 #' @return A dataframe of fixed-effects estimates.
 #' @importFrom lme4 fixef
