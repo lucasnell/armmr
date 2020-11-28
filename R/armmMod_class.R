@@ -121,7 +121,6 @@ autoreg <- function(object, ...) {
 #' @export
 #' @method autoreg armmMod
 #' @describeIn autoreg Autoregressive parameters for an `armmMod` object
-#' @importFrom stats median
 autoreg.armmMod <- function(object, ...) {
     if (is.null(eval(object$call$ar_form))) return(NULL)
     # Add `+0` to get all levels of groups:
@@ -139,23 +138,17 @@ autoreg.armmMod <- function(object, ...) {
 
 
 
-#' Extract fixed-effects estimates.
-#'
-#'
-#' @param object A fitted model with class `armmMod`.
-#' @param ... Ignored.
-#'
-#' @return A dataframe of fixed-effects estimates.
-#'
-#' @export
-fixef <- function(object, ...) {
-    UseMethod("fixef")
-}
 
-#' @describeIn fixef Extract fixed-effects estimates from an `armmMod` object
-#'
+#' @name fixef
+#' @title Extract fixed-effects estimates from an `armmMod` object
+#' @aliases fixef fixed.effects fixef.armmMod
+#' @docType methods
+#' @param object A fitted model with class armmMod.
+#' @param ... Ignored.
+#' @return A dataframe of fixed-effects estimates.
+#' @importFrom lme4 fixef
+#' @export fixef
 #' @method fixef armmMod
-#'
 #' @export
 fixef.armmMod <- function(object, ...) {
 
@@ -184,7 +177,6 @@ fixef.armmMod <- function(object, ...) {
 #'
 #' @method residuals armmMod
 #'
-#' @importFrom stats residuals
 #' @export
 residuals.armmMod <- function(object,
                               type = "response",
@@ -207,7 +199,6 @@ residuals.armmMod <- function(object,
 #' @return Fitted values.
 #'
 #' @method fitted armmMod
-#' @importFrom stats fitted
 #' @export
 fitted.armmMod <- function(object, ...) {
     if (!object$hmc) {
@@ -223,7 +214,6 @@ fitted.armmMod <- function(object, ...) {
 #' @inheritParams stats::model.frame
 #' @method model.frame armmMod
 #'
-#' @importFrom stats model.frame
 #'
 #' @export
 model.frame.armmMod <- function(formula, ...) {
@@ -235,7 +225,6 @@ model.frame.armmMod <- function(formula, ...) {
 #'
 #' @inheritParams stats::nobs
 #' @method nobs armmMod
-#' @importFrom stats nobs
 #' @export
 nobs.armmMod <- function(object, ...) {
     return(object$stan_data$n_obs)
@@ -246,7 +235,6 @@ nobs.armmMod <- function(object, ...) {
 #'
 #' @inheritParams stats::family
 #' @method family armmMod
-#' @importFrom stats family
 #'
 #' @export
 family.armmMod <- function(object, ...) {
