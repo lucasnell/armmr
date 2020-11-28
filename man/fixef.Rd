@@ -10,7 +10,7 @@
 \method{fixef}{armmMod}(object, ...)
 }
 \arguments{
-\item{object}{A fitted model with class armmMod.}
+\item{object}{A fitted model with class \code{armmMod}.}
 
 \item{...}{Ignored.}
 }
