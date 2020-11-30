@@ -271,14 +271,14 @@ form_info_w_rand <- function(formula, fixed, rand_chunks, data, start_end_mat) {
                                    rep(vg, length(vn)))
                          }, rbind)
     colnames(rnd_names) <- c("Name", "Groups")
-    rnd_names <- as.data.frame(rnd_names)
+    rnd_names <- as.data.frame(rnd_names, stringsAsFactors = FALSE)
 
     rnd_lvl_names <- f_apply(1:nrow(rnd_names),
            function(i) {
                dd <- rnd_names[i,]
                z <- eval(parse(text = dd$Groups), data)
                rownames(dd) <- NULL
-               cbind(dd, Level = levels(z))
+               cbind(dd, Level = levels(z), stringsAsFactors = FALSE)
            }, rbind)
 
     info_list$rnd_names <- rnd_names
