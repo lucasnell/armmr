@@ -170,6 +170,7 @@ n_cols_per_cov <- function(vars, formula, data) {
 #' Get information from some object by time series.
 #'
 #' This returns an error if the time series returns >1 unique value.
+#' ^^ COMMENT MAKES THIS NO LONGER TRUE ^^
 #'
 #'
 #' @noRd
@@ -181,14 +182,14 @@ get_ts_info <- function(x, start_end_mat, err_msg_arg) {
         if (length(dim(x)) != 2) stop("get_ts_info not for non-2D arrays");
         get_info <- function(i) {
             z <- x[start_end_mat[i,1]:start_end_mat[i,2],,drop=FALSE]
-            if (nrow(z) > 1 && any(apply(z, 2, sd) != 0)) stop(err_msg, call. = FALSE)
+            # if (nrow(z) > 1 && any(apply(z, 2, sd) != 0)) stop(err_msg, call. = FALSE)
             return(z[1,,drop=FALSE])
         }
         Z <- f_apply(1:nrow(start_end_mat), get_info, base::rbind)
     } else {
         get_info <- function(i) {
             z <- unique(x[start_end_mat[i,1]:start_end_mat[i,2]])
-            if (length(z) != 1) stop(err_msg, call. = FALSE)
+            # if (length(z) != 1) stop(err_msg, call. = FALSE)
             return(z)
         }
         Z <- f_apply(1:nrow(start_end_mat), get_info)
