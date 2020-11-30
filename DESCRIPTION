@@ -1,12 +1,11 @@
 Package: armmr
 Type: Package
-Title: Analyze replicate community time series
+Title: Analyze Replicate Community Time Series
 Version: 0.0.0.9000
-Date: 2018-02-26
-Authors@R: as.person(c(
-    "Joseph S Phillips <jsphillips2@wisc.edu> [aut]", 
-    "Lucas A Nell <lucas@lucasnell.com> [aut, cre]"
-  ))
+Date: 2020-11-28
+Authors@R: c(
+    person(c("Lucas", "A."), "Nell", , "lucas@lucasnell.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3209-0517")),
+    person(c("Joseph", "S."), "Phillips", , "joseph@mail.holar.is", role = c("aut")))
 Description: Some day, more details about what the package does will go here.
 License: GPL-3
 Encoding: UTF-8
@@ -17,16 +16,17 @@ NeedsCompilation: yes
 Depends:
     R (>= 3.4.0)
 Imports:
-    Rcpp (>= 0.12.16),
+    lme4,
     methods,
+    Rcpp (>= 0.12.16),
     rstan (>= 2.18.1),
     rstantools (>= 1.5.0)
 LinkingTo:
-    StanHeaders (>= 2.18.0),
-    rstan (>= 2.18.1),
     BH (>= 1.66.0-1),
     Rcpp (>= 0.12.16),
-    RcppEigen (>= 0.3.3.4.0)
+    RcppEigen (>= 0.3.3.4.0),
+    rstan (>= 2.18.1),
+    StanHeaders (>= 2.18.0)
 Suggests:
     parallel,
     knitr,

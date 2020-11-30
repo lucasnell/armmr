@@ -1,40 +1,98 @@
 language: r
 sudo: false
-cache: packages
-dist: xenial
-addons:
-  apt:
-    packages: libnode-dev
 
 latex: true
 r_build_args: '--no-build-vignettes'
 r_check_args: '--ignore-vignettes'
 
-r_github_packages:
-  - jimhester/covr
-
 env:
   global:
     - MAKEFLAGS="-j 2"
 
+branches:
+  only:
+  - master
+  - develop
+
+
 matrix:
   include:
-    - os: linux
+    - r: release
+      os: linux
+      dist: xenial
+      cache: packages
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - libnode-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      r_github_packages:
+        - jimhester/covr
+      before_install:
+        - sudo apt-get install r-base-dev
+        - sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/libgfortran.so
+        - mkdir -p ~/.R/
+        - echo "CXX14 = g++-7 -fPIC -flto=2" >> ~/.R/Makevars
+        - echo "CXX14FLAGS = -mtune=native -march=native -Wno-unused-variable -Wno-unused-function -Wno-unused-local-typedefs -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-attributes -O3" >> ~/.R/Makevars
+      after_success:
+        - travis_wait 40 tar -C .. -xf $PKG_TARBALL
+        - travis_wait 40 Rscript -e 'covr::codecov()'
+    - r: devel
+      os: linux
+      dist: xenial
+      cache: packages
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - libnode-dev
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      before_install:
+        - sudo apt-get install r-base-dev
+        - sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/libgfortran.so
+        - mkdir -p ~/.R/
+        - echo "CXX14 = g++-7 -fPIC -flto=2" >> ~/.R/Makevars
+        - echo "CXX14FLAGS = -mtune=native -march=native -Wno-unused-variable -Wno-unused-function -Wno-unused-local-typedefs -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-attributes -O3" >> ~/.R/Makevars
+      after_success:
+        - travis_wait 40 tar -C .. -xf $PKG_TARBALL
+    - r: oldrel
+      os: linux
+      dist: xenial
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - libnode-dev
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      before_install:
+        - sudo apt-get install r-base-dev
+        - sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/libgfortran.so
+        - mkdir -p ~/.R/
+        - echo "CXX14 = g++-7 -fPIC -flto=2" >> ~/.R/Makevars
+        - echo "CXX14FLAGS = -mtune=native -march=native -Wno-unused-variable -Wno-unused-function -Wno-unused-local-typedefs -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-attributes -O3" >> ~/.R/Makevars
+      after_success:
+        - travis_wait 40 tar -C .. -xf $PKG_TARBALL
+    - r: release
+      os: osx
+      cache: packages
+      r_binary_packages:
+        - Rcpp
+        - knitr
+        - testthat
+    - r: oldrel
+      os: osx
+      cache: packages
 
-before_install:
-  - sudo apt-get install r-base-dev
-  - sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/libgfortran.so
-  - mkdir -p ~/.R/
-  - echo "CXX14 = g++-7 -fPIC -flto=2" >> ~/.R/Makevars
-  - echo "CXX14FLAGS = -mtune=native -march=native -Wno-unused-variable -Wno-unused-function -Wno-unused-local-typedefs -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-attributes -O3" >> ~/.R/Makevars
 
 script:
   - |
@@ -43,10 +101,6 @@ script:
 after_script:
   - tar -ztvf armmr_*.tar.gz
   - echo ${NOT_CRAN}
-
-after_success:
-  - travis_wait 40 tar -C .. -xf $PKG_TARBALL
-  - travis_wait 40 Rscript -e 'covr::codecov()'
 
 after_failure:
   - cat armmr.Rcheck/00*
