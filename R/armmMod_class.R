@@ -144,21 +144,35 @@ autoreg.armmMod <- function(object, ...) {
 #' @aliases fixef fixed.effects fixef.armmMod
 #' @docType methods
 #' @param object A fitted model with class `armmMod`.
+#' @param method A single string, for either using quantiles (`"quantile"`)
+#'     or HPDI (`"hpdi"`) to compute the standard errors.
+#'     Defaults to `"quantile"`.
 #' @param ... Ignored.
-#' @return A dataframe of fixed-effects estimates.
+#' @return A dataframe of fixed-effects estimates. Standard errors are
+#'     based on either quantiles or HPDIs, and are half the width of
+#'     the 68% uncertainty interval.
 #' @importFrom lme4 fixef
 #' @export fixef
 #' @method fixef armmMod
 #' @export
-fixef.armmMod <- function(object, ...) {
+fixef.armmMod <- function(object, method = c("quantile", "hpdi"), ...) {
+
+    method <- match.arg(tolower(method), c("quantile", "hpdi"))
 
     A <- rstan::extract(object$stan, "alpha")[[1]]
 
-    cis <- lapply(1:ncol(A), function(i) hpdi(A[,i], 0.95))
+    if (method == "quantile") {
+        upper <- unname(sapply(1:ncol(A), function(i) quantile(A[,i], 0.84)))
+        lower <- unname(sapply(1:ncol(A), function(i) quantile(A[,i], 0.16)))
+    } else {
+        ints <- lapply(1:ncol(A), function(i) hpdi(A[,i], 0.68))
+        upper <- sapply(ints, function(x) x[["upper"]])
+        lower <- sapply(ints, function(x) x[["lower"]])
+    }
+    SEs <- 0.5 * (upper - lower)
 
     fixef_df <- data.frame(Median = apply(A, 2, median),
-                           Lower = sapply(cis, function(x) x[["lower"]]),
-                           Upper = sapply(cis, function(x) x[["upper"]]))
+                           SE = SEs)
 
     rownames(fixef_df) <- colnames(object$stan_data$x)
 
