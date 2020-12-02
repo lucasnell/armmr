@@ -76,8 +76,40 @@ summary.armmMod <- function(object,
     }
     cat(sprintf("  obs. error:     %s\n", "sig_obs" %in% names(object$stan)))
     cat("------\n")
+
     LL <- median(rstan::extract(object$stan, "log_lik_sum")[[1]])
     cat("Median posterior logLik:", LL, "\n")
+    loo_obj <- tryCatch(loo.armmMod(object),
+                     warning = function(w) {
+                         return(list(loo = suppressWarnings(loo.armmMod(object)),
+                                     warn = w))
+                     })
+    if (inherits(loo_obj, "list")) {
+        loo_est <- loo_obj[["loo"]][["estimates"]]["looic","Estimate"]
+        loo_warn <- paste0("** loo warning: ",
+                          trimws(loo_obj[["warn"]][["message"]]), "\n")
+    } else {
+        loo_est <- loo_obj[["estimates"]]["looic","Estimate"]
+        loo_warn <- ""
+    }
+
+    waic_obj <- tryCatch(waic.armmMod(object),
+                  warning = function(w) {
+                      return(list(waic = suppressWarnings(waic.armmMod(object)),
+                                  warn = w))
+                  })
+    if (inherits(waic_obj, "list")) {
+        waic_est <- waic_obj[["waic"]][["estimates"]]["waic","Estimate"]
+        waic_warn <- paste0("** waic warning: ",
+                          trimws(waic_obj[["warn"]][["message"]]), "\n")
+
+    } else {
+        waic_est <- waic_obj[["estimates"]]["waic","Estimate"]
+        waic_warn <- ""
+    }
+
+    print(c(LOO = loo_est, WAIC = waic_est), digits = digits)
+    cat(loo_warn, waic_warn, sep = "")
     cat("------\n")
 
     AR <- autoreg(object)
