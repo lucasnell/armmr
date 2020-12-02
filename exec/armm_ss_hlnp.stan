@@ -107,12 +107,14 @@ generated quantities {
       log_lik[i] = bernoulli_lpmf(1 | theta);
     }
     else {
-      if (y[i] < 1) {
-        log_lik[i] = negative_infinity();
-      } else {
-       log_lik[i] = bernoulli_lpmf(0 | theta)
+      log_lik[i] = bernoulli_lpmf(0 | theta)
                     + poisson_lpmf(y[i] | y_pred[i])
                       + lognormal_lpdf(y_pred[i] | ly_pred[i], sig_obs);
+      if (y[i] < 1) {
+        log_lik[i] += negative_infinity();
+      } else {
+        log_lik[i] += -log_sum_exp(poisson_lpmf(1 | y_pred[i]),
+                         poisson_lccdf(1 | y_pred[i]));
       }
     }
   }
