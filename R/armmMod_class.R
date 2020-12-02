@@ -52,13 +52,17 @@ summary.armmMod <- function(object,
 
     cat("Autoregressive mixed model\n")
     cat(sprintf("  method:         %s\n",
-                ifelse(object$hmc, "Hamiltonian Monte Carlo", "Direct optimization")))
+                ifelse(object$hmc, "Hamiltonian Monte Carlo",
+                       "Direct optimization")))
     cat(sprintf("  family:         %s\n", family(object)))
-    form <- if (inherits(object$call$formula, "formula")) object$call$formula else {
+    form <- if (inherits(object$call$formula, "formula")) {
+        object$call$formula
+    } else {
         eval(object$call$formula, parent.frame(1L))
     }
     cat("  formula:       ", paste(trimws(deparse(form)), collapse = " "), "\n")
-    cat("  data:          ", paste(trimws(deparse(object$call$data)), collapse = " "))
+    cat("  data:          ", paste(trimws(deparse(object$call$data)),
+                                   collapse = " "))
     scale_strs <- c()
     if (!is.null(object$x_means_sds)) scale_strs <- c(scale_strs, "scaled X")
     if (!is.null(object$y_means_sds)) scale_strs <- c(scale_strs, "scaled Y")
@@ -72,20 +76,35 @@ summary.armmMod <- function(object,
     }
     cat(sprintf("  obs. error:     %s\n", "sig_obs" %in% names(object$stan)))
     cat("------\n")
-    cat("Autoregressive parameters:\n")
-    print(autoreg(object), digits = digits)
+    LL <- median(rstan::extract(object$stan, "log_lik_sum")[[1]])
+    cat("Median posterior logLik:", LL, "\n")
+    cat("------\n")
 
-    # cat("------\n")
-    # cat("Random effects:\n")
-    # print(ranef(object), digits = digits)
+    AR <- autoreg(object)
+    if (!is.null(AR)) {
+        cat("Autoregressive parameters:\n")
+        rownames(AR) <- paste0(" ", rownames(AR))
+        print(AR, digits = digits)
+    } else cat("No autoregressive parameters\n")
+
+    if (any(grepl("^sig_beta", names(object$stan)))) {
+        cat("------\n")
+        cat("Random effects:\n")
+        print_sigma_betas(object, digits = digits)
+    } else cat("------\nNo random effects\n")
 
     cat("------\n")
     cat("Fixed effects:\n")
-    print(fixef(object), digits = digits)
+    FE <- fixef(object)
+    rownames(FE) <- paste0(" ", rownames(FE))
+    print(FE, digits = digits)
+
+    invisible(NULL)
+
+}
 
 
-    # z <- rstan::extract(object$stan, "log_lik_sum")[[1]]
-    # armmr:::hpdi(z, 0.68)
+
 
 }
 
@@ -119,18 +138,35 @@ autoreg <- function(object, ...) {
     UseMethod("autoreg")
 }
 #' @export
+#' @param method A single string, for either using quantiles (`"quantile"`)
+#'     or HPDI (`"hpdi"`) to compute the standard errors.
+#'     Defaults to `"quantile"`.
 #' @method autoreg armmMod
 #' @describeIn autoreg Autoregressive parameters for an `armmMod` object
-autoreg.armmMod <- function(object, ...) {
+autoreg.armmMod <- function(object,
+                            method = c("quantile", "hpdi"),
+                            ...) {
+
     if (is.null(eval(object$call$ar_form))) return(NULL)
+
+    method <- match.arg(tolower(method), c("quantile", "hpdi"))
     # Add `+0` to get all levels of groups:
     new_form <- as.formula(paste0(deparse(eval(object$call$ar_form)), "+0"))
     ar_names <- colnames(model.matrix(new_form, eval(object$call$data)))
     phis <- rstan::extract(object$stan, "phi")[[1]]
-    cis <- lapply(1:ncol(phis), function(i) hpdi(phis[,i], 0.95))
+
+    if (method == "quantile") {
+        upper <- unname(sapply(1:ncol(phis), function(i) quantile(phis[,i], 0.84)))
+        lower <- unname(sapply(1:ncol(phis), function(i) quantile(phis[,i], 0.16)))
+    } else {
+        ints <- lapply(1:ncol(phis), function(i) hpdi(phis[,i], 0.68))
+        upper <- sapply(ints, function(x) x[["upper"]])
+        lower <- sapply(ints, function(x) x[["lower"]])
+    }
+    SEs <- 0.5 * (upper - lower)
+
     autoreg_df <- data.frame(Median = apply(phis, 2, median),
-                           Lower = sapply(cis, function(x) x[["lower"]]),
-                           Upper = sapply(cis, function(x) x[["upper"]]))
+                             `Std.Error` = SEs)
     rownames(autoreg_df) <- ar_names
     return(autoreg_df)
 }
@@ -172,7 +208,7 @@ fixef.armmMod <- function(object, method = c("quantile", "hpdi"), ...) {
     SEs <- 0.5 * (upper - lower)
 
     fixef_df <- data.frame(Median = apply(A, 2, median),
-                           SE = SEs)
+                           `Std.Error` = SEs)
 
     rownames(fixef_df) <- colnames(object$stan_data$x)
 
