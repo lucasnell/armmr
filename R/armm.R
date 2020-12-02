@@ -887,8 +887,6 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #'
 #' @export
 #'
-#' @importFrom rstan sampling
-#' @importFrom rstan optimizing
 #'
 #' @examples
 #' form <- y ~ x1 * x2 + x3 + (x1 * x2 | g1 + g2) + (x3 | g1) + (1 | g2) + x4
@@ -1043,10 +1041,10 @@ armm <- function(formula,
 
 
     if (hmc) {
-        stan_fit <- do.call(sampling, rstan_control)
+        stan_fit <- do.call(rstan::sampling, rstan_control)
     } else {
         if (!isTRUE(rstan_control$hessian)) rstan_control$hessian <- TRUE
-        stan_fit <- do.call(optimizing, rstan_control)
+        stan_fit <- do.call(rstan::optimizing, rstan_control)
     }
 
     armmMod_obj <- new_armmMod(stan_fit, call_, hmc, x_means_sds,
