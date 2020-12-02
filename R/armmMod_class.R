@@ -106,7 +106,72 @@ summary.armmMod <- function(object,
 
 
 
+
+
+#' @name loo
+#' @title Extract LOO estimates from an `armmMod` object
+#' @aliases loo loo.armmMod
+#' @docType methods
+#' @param x A fitted model with class `armmMod`.
+#' @inheritParams rstan:::loo.stanfit
+#' @importFrom loo loo
+#' @export loo
+#' @method loo armmMod
+#' @seealso \code{\link[loo]{loo}} \code{\link[rstan]{loo.stanfit}}
+#' @export
+loo.armmMod <- function(x,
+                        save_psis = FALSE,
+                        cores = getOption("mc.cores", 1),
+                        moment_match = FALSE,
+                        k_threshold = 0.7,
+                        ...) {
+    .loo <- rstan:::loo.stanfit(x$stan, pars = "log_lik_sum",
+                                save_psis = save_psis, cores = cores,
+                                moment_match = moment_match,
+                                k_threshold = k_threshold, ...)
+    return(.loo)
 }
+
+
+#' @name waic
+#' @title Extract WAIC from an `armmMod` object
+#' @aliases waic waic.armmMod
+#' @docType methods
+#' @param x A fitted model with class `armmMod`.
+#' @param \dots Ignored.
+#' @importFrom loo waic
+#' @export waic
+#' @method waic armmMod
+#' @seealso \code{\link[loo]{waic}}
+#' @export
+waic.armmMod <- function(x, ...) {
+    ll_m <- loo::extract_log_lik(x$stan, parameter_name = "log_lik_sum")
+    .waic <- loo::waic.matrix(ll_m)
+    return(.waic)
+}
+
+
+#
+# This is for use in the summary method.
+#
+print_sigma_betas <- function(object, digits) {
+
+    if (!any(grepl("^sig_beta", names(object$stan)))) invisible(NULL)
+
+    B <- rstan::extract(object$stan, "sig_beta")[[1]]
+
+    sigmaB_df <- cbind(object$rnd_names[,c("Groups", "Name")],
+                       data.frame(`Std.Dev.` = apply(B, 2, median)))
+    sigmaB_df <- sigmaB_df[order(sigmaB_df$Groups),]
+    rownames(sigmaB_df) <- NULL
+
+    sigmaB_df$Groups[sigmaB_df$Groups ==
+                         c("", sigmaB_df$Groups[-nrow(sigmaB_df)])] <- ""
+
+    print(sigmaB_df, row.names = FALSE, right = FALSE, digits = digits)
+}
+
+
 
 
 # #' @noRd

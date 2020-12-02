@@ -17,6 +17,7 @@ Depends:
     R (>= 3.4.0)
 Imports:
     lme4,
+    loo,
     methods,
     Rcpp (>= 0.12.16),
     rstan (>= 2.18.1),
