@@ -23,12 +23,10 @@ parameters {
     real<lower=0> sig_beta[sum(g_per_ff)];      // group standard deviations
     real ze[n_obs - n_ts];                      // random deviates for proc. error
     real<lower=0> sig_proc;                     // process error standard deviation
-    real<lower=0> theta;                      // probability of zero
 }
 transformed parameters {
     real beta[n_ts,n_coef]; // coefficients
     real ly_pred[n_obs];     // predicted values
-    real y_pred[n_obs];     // predicted values (natural scale)
     {
         int xy_pos = 1;         // position in x and y vectors
         // loop over time series:
@@ -71,7 +69,6 @@ transformed parameters {
            xy_pos += obs_per[ts];
         } // ts
     }
-    y_pred = exp(y_pred);
 }
 model {
     // priors:
@@ -84,32 +81,15 @@ model {
         phi[i] ~ normal(0, 0.5) T[0, p_bound];
     }
     ze ~ normal(0, 1);
-    theta ~ gamma(1.5, 3);
     sig_proc ~ gamma(1.5, 3);
     // likelihood:
-    for(i in 1:n_obs){
-        if (y[i] == 0) {
-          1 ~ bernoulli(theta);
-        }
-        else {
-          0 ~ bernoulli(theta);
-          y[i] ~ poisson(y_pred[i]) T[1, ];
-    }
-  }
+    y ~ poisson_log(ly_pred);
 }
 generated quantities {
   real log_lik[n_obs];
   real log_lik_sum;
-  for(i in 1:n_obs) {
-    if (y[i] == 0) {
-      log_lik[i] = bernoulli_lpmf(1 | theta);
-    }
-    else {
-      log_lik[i] = bernoulli_lpmf(0 | theta)
-                    + poisson_lpmf(y[i] | y_pred[i]);
-      log_lik[i] += -log_sum_exp(poisson_lpmf(1 | y_pred[i]),
-                         poisson_lccdf(1 | y_pred[i]));
-    }
+  for(i in 1:n_obs){
+    log_lik[i] = poisson_log_lpmf(y[i] | ly_pred[i]);
   }
   log_lik_sum = sum(log_lik);
 }
