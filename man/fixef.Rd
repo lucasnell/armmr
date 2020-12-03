@@ -15,7 +15,7 @@
 \item{...}{Ignored.}
 }
 \value{
-A dataframe of fixed-effects estimates.
+A vector of fixed-effects estimates.
 }
 \description{
 Extract fixed-effects estimates from an \code{armmMod} object

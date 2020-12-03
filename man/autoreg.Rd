@@ -7,12 +7,16 @@
 \usage{
 autoreg(object, ...)
 
-\method{autoreg}{armmMod}(object, ...)
+\method{autoreg}{armmMod}(object, se_method = c("quantile", "hpdi"), ...)
 }
 \arguments{
 \item{object}{A fitted model with class \code{armmMod}}
 
 \item{\dots}{Additional arguments, ignored for method compatibility.}
+
+\item{se_method}{A single string, for either using quantiles (\code{"quantile"})
+or HPDI (\code{"hpdi"}) to compute the standard errors.
+Defaults to \code{"quantile"}.}
 }
 \value{
 AR parameters.
