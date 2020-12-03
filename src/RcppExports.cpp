@@ -51,7 +51,20 @@ END_RCPP
 
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_b_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_beta_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_catlogit_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_hlnp_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_hnb_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_hp_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_lnb_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_lnp_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_nb_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_p_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_reps_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zilnp_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zinb_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zip_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4mm_mod();
 
 static const R_CallMethodDef CallEntries[] = {
@@ -60,7 +73,20 @@ static const R_CallMethodDef CallEntries[] = {
     {"_armmr_hpdi", (DL_FUNC) &_armmr_hpdi, 2},
     {"_rcpp_module_boot_stan_fit4armm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_b_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_b_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_beta_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_beta_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_catlogit_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_catlogit_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_hlnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_hlnp_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_hnb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_hnb_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_hp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_hp_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_lnb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_lnb_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_lnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_lnp_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_nb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_nb_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_p_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_p_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_reps_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_reps_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_zilnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zilnp_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_zinb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zinb_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_zip_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zip_mod, 0},
     {"_rcpp_module_boot_stan_fit4mm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4mm_mod, 0},
     {NULL, NULL, 0}
 };

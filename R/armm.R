@@ -852,7 +852,10 @@ set_priors <- function(stan_data, priors, x_scale, y_scale) {
 #' @param obs_error Logical for whether to include observation error.
 #'     Defaults to `FALSE`.
 #' @param family String specifying the error distribution used.
-#'     Options are `"normal"` or `"lnorm_poisson"`. Defaults to `"normal"`.
+#'     Options are `"normal"` or any of the abbreviations following `_ss`
+#'     in the `*.stan` file names in the folder `armmr/exec`
+#'     (e.g., `_b`, `_lnp`).
+#'     Defaults to `"normal"`.
 #' @param x_scale Logical for whether to scale the independent variable(s).
 #'     Defaults to `TRUE`.
 #' @param ar_bound An optional logical for whether to bound the autoregressive
@@ -954,8 +957,15 @@ armm <- function(formula,
     initial_input_checks(formula, time_form, ar_form, y_scale, data, obs_error,
                          family, ar_bound, x_scale, hmc, change, rstan_control)
 
-    family <- match.arg(tolower(family), c("normal", "lnorm_poisson"))
-    if (family != "normal") y_scale <- NULL # never scale if family isn't normal
+
+    # --------------*
+    # Removing these checks temporarily!
+    # --------------*
+    # family <- match.arg(tolower(family), c("normal", "lnorm_poisson"))
+    # if (family != "normal") y_scale <- NULL # never scale if family isn't normal
+    if (family == "normal") family <- NULL
+    if (family == "lnorm_poisson") family <- "lnp"
+
 
     # Checks for variables being same length and reorders by time if necessary
     obs_per <- check_len_sort_data(formula, time_form, ar_form, data)
@@ -974,13 +984,16 @@ armm <- function(formula,
     stan_data$rnd_names <- NULL
     stan_data$rnd_lvl_names <- NULL
 
-    # Checks for integers if using lnorm_poisson
-    if (family == "lnorm_poisson") {
-        if (any(stan_data$y != round(stan_data$y))) {
-            stop("\nIn `armmr`, if using a lognormal Poisson distribution, the ",
-                 "response variable must be integers.")
-        }
-    }
+    # --------------*
+    # Removing these checks temporarily!
+    # --------------*
+    # # Checks for integers if using lnorm_poisson
+    # if (family == "lnorm_poisson") {
+    #     if (any(stan_data$y != round(stan_data$y))) {
+    #         stop("\nIn `armmr`, if using a lognormal Poisson distribution, the ",
+    #              "response variable must be integers.")
+    #     }
+    # }
 
     # Deal with potential scaling of x variables that may or may not have been done
     # inside `make_coef_objects`:
@@ -989,7 +1002,7 @@ armm <- function(formula,
 
     # Now scale y variables if desired (only done for normal distribution):
     y_means_sds <- NULL
-    if (!is.null(y_scale) && family == "normal") {
+    if (!is.null(y_scale)) {# && family == "normal") {
         if (inherits(y_scale, "formula")) y_scale <- all.vars(y_scale)
         y_scale_var_vec <- tryCatch(
             eval(parse(text = y_scale), data),
@@ -1021,7 +1034,7 @@ armm <- function(formula,
 
 
     # UNCOMMENT BELOW ONCE STAN FILES CAN ACCEPT THE PRIORS
-    # ALSO ADJUST BELOW FUNCTION FOR IF `family == "lnorm_poisson"`
+    # ALSO ADJUST BELOW FUNCTION FOR IF `family != "normal"`
     # # Adding priors to stan_data
     # prior_list <- set_priors(priors, stan_data, x_scale, y_scale)
     # for (n in names(prior_list)) stan_data[[n]] <- prior_list[[n]]
@@ -1029,11 +1042,13 @@ armm <- function(formula,
     # Assemble file name for stan file
     fn_chunks <- c(if (is.null(ar_form)) "mm" else "armm",
                    if (obs_error) "ss" else NULL,
-                   switch(family, lnorm_poisson = "lnp", normal = NULL))
+                   family)
     stan_file <- paste(fn_chunks, collapse = "_")
     if (!stan_file %in% names(stanmodels)) {
-        stop("\nYour specifications for autoregression, observation error, ",
-             "and error distribution have not yet been programmed.")
+        # stop("\nYour specifications for autoregression, observation error, ",
+        #      "and error distribution have not yet been programmed.")
+        stop("\nFile ", stan_file, " not found. Options are...\n",
+             paste0(names(stanmodels), collapse = "\n"))
     }
 
     rstan_control <- c(rstan_control, list(object = stanmodels[[stan_file]],
