@@ -12,7 +12,7 @@ data {
     int<lower=0, upper=1> change;       // logical for parameterization
                                         // (0 = predict mean; 1 = predict change);
     // data
-    int y_map[n_obs_rep];               // map predicted values to response variable
+    int<lower=1, upper=n_obs> y_map[n_obs_rep]; // map predicted values to response variable
     real y[n_obs_rep];                  // response variables
     real x[n_obs, n_coef];              // predictor variables
     real<lower=0> time[n_obs];          // response variable times
@@ -94,8 +94,8 @@ model {
 generated quantities {
   real log_lik[n_obs];
   real log_lik_sum;
-  for(i in 1:n_obs){
-    log_lik[i] = normal_lpdf(y[i] | y_pred[i], sig_obs);
+  for(i in 1:n_obs_rep){
+    log_lik[i] = normal_lpdf(y[i] | y_pred[y_map[i]], sig_obs);
   }
   log_lik_sum = sum(log_lik);
 }
