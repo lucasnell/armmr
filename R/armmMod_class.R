@@ -500,3 +500,28 @@ family.armmMod <- function(object, ...) {
     return(fam)
 }
 
+
+
+
+#' @name pp_check
+#' @title Posterior predictive checks for an `armmMod` object
+#' @aliases pp_check pp_check.armmMod
+#' @docType methods
+#' @param object A fitted model with class `armmMod`.
+#' @param ... Arguments for function \code{\link[bayesplot]{ppc_dens_overlay}}.
+#' @return A `ggplot2` object containing the plot.
+#' @importFrom bayesplot pp_check
+#' @export pp_check
+#' @method pp_check armmMod
+#' @seealso \code{\link[bayesplot]{ppc_dens_overlay}}
+#' @export
+pp_check.armmMod <- function(object, ...) {
+
+    yrep <- rstan::extract(object$stan, "y_pred")[[1]]
+    y <- object$stan_data$y
+
+    p <- bayesplot::ppc_dens_overlay(y, yrep, ...)
+
+    return(p)
+
+}
