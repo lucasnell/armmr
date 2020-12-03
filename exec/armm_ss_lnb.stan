@@ -24,6 +24,8 @@ parameters {
     real<lower=0> sig_beta[sum(g_per_ff)];      // group standard deviations
     real ze[n_obs - n_ts];                      // random deviates for proc. error
     real<lower=0> sig_proc;                     // process error standard deviation
+    real<lower=0> sig_obs;                      // observation error standard deviation
+    real<lower=0> ly_pred_o[n_obs];                 // predicted value with observation error
 }
 transformed parameters {
     real beta[n_ts,n_coef]; // coefficients
@@ -83,14 +85,17 @@ model {
     }
     ze ~ normal(0, 1);
     sig_proc ~ gamma(1.5, 3);
+    sig_obs ~ gamma(1.5, 3);
+    ly_pred_o ~ normal(ly_pred, sig_obs);
     // likelihood:
-    y ~ binomial_logit(y_max, ly_pred);
+    y ~ binomial_logit(y_max, ly_pred_o);
 }
 generated quantities {
   real log_lik[n_obs];
   real log_lik_sum;
   for(i in 1:n_obs){
-    log_lik[i] = binomial_logit_lpmf(y[i] | y_max, ly_pred[i]);
+    log_lik[i] = binomial_logit_lpmf(y[i] | y_max, ly_pred_o[i])
+                    + normal_lpdf(ly_pred_o[i] | ly_pred[i], sig_obs);;
   }
   log_lik_sum = sum(log_lik);
 }
