@@ -264,19 +264,61 @@ bayesian_se <- function(x, se_method) {
 
 
 
-# #' @noRd
-# #'
-# #' @export
-# ranef <- function(object, ...) {
-#     UseMethod("ranef")
-# }
-# LEFT OFF HERE ----
-# ranef.armmMod <- function(object, ...)
-# object$stan
 
-# object$stan_data$b_groups
-#
-# names(object$stan)[grepl("beta", names(object$stan))]
+#' @name ranef
+#' @title Extract random-effects estimates from an `armmMod` object
+#' @aliases ranef random.effects ranef.armmMod
+#' @docType methods
+#' @inheritParams fixef
+#' @return A list of random-effects estimates.
+#' @importFrom lme4 ranef
+#' @export ranef
+#' @method ranef armmMod
+#' @export
+ranef.armmMod <- function(object, ...) {
+
+    sigma_names <- names(object$stan)[grepl("^sig_beta\\[", names(object$stan))]
+    z_names <- names(object$stan)[grepl("^z\\[", names(object$stan))]
+
+    S <- rstan::extract(object$stan, sigma_names)
+    S <- lapply(1:length(S),
+                function(i) {
+                    matrix(as.numeric(S[[i]]), length(S[[i]]),
+                           object$stan_data$lev_per_g[i])
+                })
+    S <- do.call(cbind, S)
+    Z <- do.call(cbind, rstan::extract(object$stan, z_names))
+
+    ests <- unname(apply(S * Z, 2, median))
+
+    ranef_df <- cbind(object$rnd_lvl_names, data.frame(Estimate = ests),
+                      stringsAsFactors = FALSE)
+
+    ranef_list <- lapply(split(ranef_df, ranef_df$Groups),
+                         function(x) {
+                             x <- x[,c("Name", "Level", "Estimate")]
+                             xdf <- lapply(split(x, x$Name), function(y) {
+                                 ydf <- data.frame(y$Estimate)
+                                 colnames(ydf) <- y$Name[1]
+                                 rownames(ydf) <- y$Level
+                                 return(ydf)
+                             })
+                             # Make sure all rownames are in same order
+                             if (length(xdf) > 1) {
+                                 rnames <- rownames(xdf[[1]])
+                                 for (i in 2:length(xdf)) {
+                                     if (!all(rownames(xdf[[i]]) == rnames)) {
+                                         xdf[[i]] <- xdf[[i]][rnames,,drop=F]
+                                     }
+                                 }
+                             }
+                             xdf <- do.call(cbind, xdf)
+                             return(xdf)
+                         })
+
+    return(ranef_list)
+
+}
 
 
 
@@ -345,8 +387,17 @@ fixef.armmMod <- function(object, ...) {
 
 
 
-    return(fixef_df)
-}
+#
+# #' Coefficients from an `armmMod` object
+# #'
+# #' @inheritParams stats::coef
+# #' @method coef armmMod
+# #' @export
+# coef.armmMod <- function(object, ...) {
+#
+#     ranef.armmMod(object)
+#
+# }
 
 
 #' Residuals of `armmMod` objects
