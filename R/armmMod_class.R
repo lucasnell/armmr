@@ -277,6 +277,7 @@ bayesian_se <- function(x, se_method) {
 #' @export
 ranef.armmMod <- function(object, ...) {
 
+    if (sum(object$stan_data$g_per_ff) == 0) return(NULL)
     sigma_names <- names(object$stan)[grepl("^sig_beta\\[", names(object$stan))]
     z_names <- names(object$stan)[grepl("^z\\[", names(object$stan))]
 
@@ -387,17 +388,39 @@ fixef.armmMod <- function(object, ...) {
 
 
 
-#
-# #' Coefficients from an `armmMod` object
-# #'
-# #' @inheritParams stats::coef
-# #' @method coef armmMod
-# #' @export
-# coef.armmMod <- function(object, ...) {
-#
-#     ranef.armmMod(object)
-#
-# }
+
+#' Coefficients from an `armmMod` object
+#'
+#' @param object An object of class `armmMod`.
+#' @param ... Ignored.
+#' @method coef armmMod
+#'
+#' @return If random variables present, a list of data frames (1 for each
+#'     random-effect grouping variable).
+#'     Each data frame contains coefficients for each level of the variable.
+#'     If the model doesn't contain random variables, then it returns a
+#'     vector of coefficients.
+#'
+#' @export
+coef.armmMod <- function(object, ...) {
+
+    fixed <- fixef(object)
+    random <- ranef(object)
+    if (is.null(random)) return(fixed)
+
+    coef_obj <- lapply(random,
+                        function(x) {
+                            m <- matrix(fixed, nrow(x), length(fixed),
+                                        byrow = TRUE)
+                            colnames(m) <- names(fixed)
+                            rownames(m) <- rownames(x)
+                            for (n in colnames(x)) m[,n] <- m[,n] + x[,n]
+                            return(m)
+                        })
+
+    return(coef_obj)
+
+}
 
 
 #' Residuals of `armmMod` objects
