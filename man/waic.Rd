@@ -16,3 +16,6 @@
 \description{
 Extract WAIC from an \code{armmMod} object
 }
+\seealso{
+\code{\link[loo]{waic}}
+}

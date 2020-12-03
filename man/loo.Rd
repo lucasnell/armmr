@@ -39,3 +39,6 @@
 \description{
 Extract LOO estimates from an \code{armmMod} object
 }
+\seealso{
+\code{\link[loo]{loo}} \code{\link[rstan]{loo.stanfit}}
+}
