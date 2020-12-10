@@ -963,8 +963,8 @@ armm <- function(formula,
     # --------------*
     # family <- match.arg(tolower(family), c("normal", "lnorm_poisson"))
     # if (family != "normal") y_scale <- NULL # never scale if family isn't normal
-    if (family == "normal") family <- NULL
-    if (family == "lnorm_poisson") family <- "lnp"
+    if (family == "normal") family <- "armm"
+    if (family == "lnorm_poisson") family <- "armm_ss_lnp"
 
 
     # Checks for variables being same length and reorders by time if necessary
@@ -1039,11 +1039,12 @@ armm <- function(formula,
     # prior_list <- set_priors(priors, stan_data, x_scale, y_scale)
     # for (n in names(prior_list)) stan_data[[n]] <- prior_list[[n]]
 
-    # Assemble file name for stan file
-    fn_chunks <- c(if (is.null(ar_form)) "mm" else "armm",
-                   if (obs_error) "ss" else NULL,
-                   family)
-    stan_file <- paste(fn_chunks, collapse = "_")
+    # # Assemble file name for stan file
+    # fn_chunks <- c(if (is.null(ar_form)) "mm" else "armm",
+    #                if (obs_error) "ss" else NULL,
+    #                family)
+    # stan_file <- paste(fn_chunks, collapse = "_")
+    stan_file <- family
     if (!stan_file %in% names(stanmodels)) {
         # stop("\nYour specifications for autoregression, observation error, ",
         #      "and error distribution have not yet been programmed.")

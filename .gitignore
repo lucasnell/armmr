@@ -53,3 +53,4 @@ Thumbs.db
 %
 under_constr
 inst/doc
+*.tmp
