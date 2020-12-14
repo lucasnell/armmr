@@ -17,5 +17,98 @@ knitr::opts_chunk$set(
 library(armmr)
 ```
 
+# Linear predictors
 
+The linear predictors are formulated as for linear and generalized linear mixed models.
+Generically, 
+for a design matrix $\mathbf{x}$ and matrix of coefficients ${\boldsymbol\beta}$,
+the linear predictor $z_i$ for observation $i$ of is formulated as
 
+$$
+z_i = \mathbf{x}^\text{T}_i {\boldsymbol\beta}_i.
+$$
+
+The coefficients in ${\boldsymbol\beta}$ are 
+themselves calculated from the fixed and random effects.
+
+Linear predictors can either be formulated with or without temporal autocorrelation.
+For Gaussian response distributions, 
+models with temporal autocorrelation can either be formulated without observation error as
+
+$$
+z_i = \mathbf{x}_i^\text{T} {\boldsymbol\beta}_i +
+        \left[\phi_{\text{group}[i]} \right]^{\Delta t_i}
+        y^{\prime}_i
+$$
+$y^{\prime}_i$ is a lagged vector of observed values $y_i$,
+$\phi_{\text{group}[i]$ is the autoregressive parameter associated with some grouping,
+and $\Delta t_i$ is the time elapsed between observations.
+The values of $y{\prime}_i$ are lagged according to a user-specified grouping structure.
+Furthermore, $\phi_{\text{group}[i]$ is allowed to vary amoung user-specified groups,
+provided that they are compatible with the grouping structure 
+for the construction of $y^\prime_i$.
+
+Both Gaussian and non-Gaussian autoregressive models with observation error 
+are formulatd as state-space models
+with the linear predictor modeling the latent state $z_i$, 
+which depends on the lagged latent state $z{\prime}_i$.
+This then leads to the following formulation of the linear predictor:
+$$
+z_i = \mathbf{x}_i^\text{T} {\boldsymbol\beta}_i +
+        \left[\phi_{\text{group}[i]} \right]^{\Delta t_i}
+        z^{\prime}_i+\varepsilon_i
+$$
+where $\varepsilon_i$ is the process error contributing to changes in the latent state.
+Processes error is assumed to follow a Gaussian distribution with mean of 0 and standard
+deviation $\sigma_{\text{proc}}$.
+
+Non-Gaussian models with temporal autocorrelation are only formulated as state-space models
+(i.e., with both processes and observation error),
+sa the formulation of the autoregressive component on the linear predictor scale
+requires the modeling of latent states.
+
+# Continuous distributions 
+
+## Gaussian
+
+The Gaussian error distribution relates the linear predictor $z_i$ to its mean $u_i$
+using an indentiy link function.
+The pointwise likelihood is then calculated for observation $y_i$ as
+$$
+\text{Gaussian}(y_i|u_i,\sigma_{\text{obs}}).
+$$
+with observation error standard deviation $\sigma_{\text{obs}}$.
+
+## Beta
+
+The Beta error distribution is available for either conventional 
+generlaized linear (mixed) models or autoregressive state-space models. 
+Linear predictors are formulated exactly as for Gaussian moodels 
+Autoergressive models without observation error (i.e., not state-space) are not supported, 
+as the autoregressive component is formulated on the linear predictor scale 
+and therefore requires estimation of latent states.
+
+# Discrete distributions 
+
+Discrete error distributions are available for either conventional 
+generlaized linear (mixed) models or autoregressive state-space models. 
+Linear predictors are formulated exactly as for Gaussian moodels 
+Autoergressive models without observation error (i.e., not state-space) are not supported, 
+as the autoregressive component is formulated on the linear predictor scale 
+and therefore requires estimation of latent states.
+
+## Binomial
+
+## Logit-normal binomial
+
+## Poisson
+
+## Log-normal Poisson
+
+## Negative Binomial
+
+## Zero-inflated (Poisson, Log-normal Poisson, Negative Binomial)
+
+## Hurdle (Poisson, Log-normal Poisson, Negative Binomial)
+
+## Categorical-Logit
