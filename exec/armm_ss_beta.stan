@@ -11,7 +11,7 @@ data {
     int<lower=0, upper=1> change;       // logical for parameterization
                                         // (0 = predict mean; 1 = predict change);
     // data
-    real<lower=0, upper=0> y[n_obs];                      // response variables
+    real<lower=0, upper=1> y[n_obs];                      // response variables
     real x[n_obs, n_coef];              // predictor variables
     real<lower=0> time[n_obs];          // response variable times
     real<lower=0> p_bound;              // upper bound for phis
@@ -24,7 +24,6 @@ parameters {
     real ze[n_obs - n_ts];                      // random deviates for proc. error
     real<lower=0> sig_proc;                     // process error standard deviation
     real<lower=0> kappa;                        // overdispersion parameter
-    real<lower=0> y_pred[n_obs];                 // predicted value with observation error
 }
 transformed parameters {
     real beta[n_ts,n_coef]; // coefficients
@@ -92,7 +91,7 @@ generated quantities {
   real log_lik[n_obs];
   real log_lik_sum;
   for(i in 1:n_obs){
-    log_lik[i] = beta_proportion_lpdf(y[i] | inv_logit(y_pred[i]), kappa);
+    log_lik[i] = beta_proportion_lpdf(y[i] | inv_logit(ly_pred[i]), kappa);
   }
   log_lik_sum = sum(log_lik);
 }

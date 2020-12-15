@@ -87,9 +87,7 @@ model {
     sig_obs ~ gamma(1.5, 3);
     sig_proc ~ gamma(1.5, 3);
     // observations:
-    for (i in 1:n_obs_rep) {
-      y[i] ~ normal(y_pred[y_map[i]], sig_obs);
-    }
+    y ~ normal(y_pred[y_map], sig_obs);
 }
 generated quantities {
   real log_lik[n_obs];
