@@ -17,9 +17,10 @@ knitr::opts_chunk$set(
 library(armmr)
 ```
 
-# Linear predictors
+# Linear predictor
 
-The linear predictors are formulated as for linear and generalized linear mixed models.
+The linear predictors are formulated as for conventional linear 
+and generalized linear mixed models.
 Generically, 
 for a design matrix $\mathbf{x}$ and matrix of coefficients ${\boldsymbol\beta}$,
 the linear predictor $z_i$ for observation $i$ of is formulated as
@@ -33,82 +34,283 @@ themselves calculated from the fixed and random effects.
 
 Linear predictors can either be formulated with or without temporal autocorrelation.
 For Gaussian response distributions, 
-models with temporal autocorrelation can either be formulated without observation error as
+models with temporal autocorrelation can be formulated without observation error 
+in the state at the previous time step as
 
 $$
 z_i = \mathbf{x}_i^\text{T} {\boldsymbol\beta}_i +
         \left[\phi_{\text{group}[i]} \right]^{\Delta t_i}
-        y^{\prime}_i
+        y^{\prime}_i,
 $$
-$y^{\prime}_i$ is a lagged vector of observed values $y_i$,
-$\phi_{\text{group}[i]$ is the autoregressive parameter associated with some grouping,
+where $y^{\prime}_i$ is a lagged vector of observed values $y_i$,
+$\phi_{\text{group}[i]}$ is the autoregressive parameter associated with some grouping,
 and $\Delta t_i$ is the time elapsed between observations.
 The values of $y{\prime}_i$ are lagged according to a user-specified grouping structure.
-Furthermore, $\phi_{\text{group}[i]$ is allowed to vary amoung user-specified groups,
+Furthermore, $\phi_{\text{group}[i]}$ is allowed to vary amoung user-specified groups,
 provided that they are compatible with the grouping structure 
 for the construction of $y^\prime_i$.
 
 Both Gaussian and non-Gaussian autoregressive models with observation error 
 are formulatd as state-space models
 with the linear predictor modeling the latent state $z_i$, 
-which depends on the lagged latent state $z{\prime}_i$.
+which depends on the lagged latent state $z^{\prime}_i$.
 This then leads to the following formulation of the linear predictor:
 $$
 z_i = \mathbf{x}_i^\text{T} {\boldsymbol\beta}_i +
         \left[\phi_{\text{group}[i]} \right]^{\Delta t_i}
-        z^{\prime}_i+\varepsilon_i
+        z^{\prime}_i+\varepsilon_{\text{proc},i},
 $$
-where $\varepsilon_i$ is the process error contributing to changes in the latent state.
+where $\varepsilon_{\text{proc},i}$ 
+is the process error contributing to changes in the latent state.
 Processes error is assumed to follow a Gaussian distribution with mean of 0 and standard
 deviation $\sigma_{\text{proc}}$.
 
 Non-Gaussian models with temporal autocorrelation are only formulated as state-space models
 (i.e., with both processes and observation error),
-sa the formulation of the autoregressive component on the linear predictor scale
+as our formulation of the autoregressive component on the linear predictor scale
 requires the modeling of latent states.
 
 # Continuous distributions 
 
 ## Gaussian
 
-The Gaussian error distribution relates the linear predictor $z_i$ to its mean $u_i$
-using an indentiy link function.
-The pointwise likelihood is then calculated for observation $y_i$ as
+For Gaussian error distributions,
+the pointwise likelihood for observation $y_i$ is calculated as
 $$
-\text{Gaussian}(y_i|u_i,\sigma_{\text{obs}}).
+y_i \sim \text{Gaussian}\left(z_i,\sigma_{\text{obs}}\right).
 $$
-with observation error standard deviation $\sigma_{\text{obs}}$.
+with linear predictor $z_i$ and 
+observation error standard deviation $\sigma_{\text{obs}}$.
+The linear predictor can be formulated with or without temporal autocorrelation,
+and the latter can be formulated with or without observation error.
+The Gaussian model with temporal autocorrelation and no observation error 
+corresponds with a conventional linear (mixed) model with temporal autocorrelation in 
+the residuals.
+However, $\texttt{armm()}$ allows the autoregressive parameter $\phi_{\text{group}[i]}$
+to differ among groups, unlike other packages for fitting linear models with
+temporal autocorrelation, such as $\texttt{nlme}$.
+
+Note that for autoregressive formulations of the linear predictor,
+there may be limited identifiability for $\sigma_\text{proc}$ and $\sigma_\text{obs}$ 
+when time series are short or poorly replicated.
 
 ## Beta
 
-The Beta error distribution is available for either conventional 
-generlaized linear (mixed) models or autoregressive state-space models. 
-Linear predictors are formulated exactly as for Gaussian moodels 
-Autoergressive models without observation error (i.e., not state-space) are not supported, 
+The beta error distribution is available for proportion data $y_i \in (0, 1)$,
+such as percent cover of a given area by a given taxon. 
+The pointwise likelihood for observation $y_i$ is calculated 
+using the "proportion" parameterization as
+$$
+y_i \sim \text{Beta}(\mu_i,\kappa) \\
+\mu_i = \text{logit}^{-1}(z_i).
+$$
+with mean $u_i$ and precision $\kappa > 0$. 
+Note that the likelihood equals 0 (and log-likelihood equals $-\infty$) 
+when $y_i=0$ or $y_i=1$.
+Therefore, $\texttt{armm()}$ restricts $0 < y_i < 1$.
+ 
+The beta error distribution is available for either conventional 
+generalized linear (mixed) models or autoregressive state-space models. 
+Autoregressive models without observation error (i.e., not state-space) are not supported, 
 as the autoregressive component is formulated on the linear predictor scale 
 and therefore requires estimation of latent states.
 
 # Discrete distributions 
 
 Discrete error distributions are available for either conventional 
-generlaized linear (mixed) models or autoregressive state-space models. 
-Linear predictors are formulated exactly as for Gaussian moodels 
-Autoergressive models without observation error (i.e., not state-space) are not supported, 
+generalized linear (mixed) models or autoregressive state-space models. 
+Autoregressive models without observation error (i.e., not state-space) are not supported, 
 as the autoregressive component is formulated on the linear predictor scale 
 and therefore requires estimation of latent states.
 
-## Binomial
+## Binomial and logit-normal binomial
 
-## Logit-normal binomial
+The binomial error distribution is available for data consisting of a discrete number of 
+successes $y_i$ out of a number of trials $\nu_i$,
+such as the number of potential patches occupied by a given taxon.
+The pointwise likelihood for observation $y_i$ is calculated as
+$$
+y_i \sim \text{Binomial}(\nu_i, \pi_i) \\
+\pi_i = \text{logit}^{-1}(z_i).
+$$
+where $\pi_i$ is the probability of success for a given trial
+and $0 \le y_i \le \nu_i$.
+The expected variance of the distribution equals $\nu_i \pi_i (1 - \pi_i)$
+and therefore depends only on the probability of success and the number of trials.
+The true variance among observations might exceed the expected variance due to 
+binomial sampling error alone (i.e., overdispersion).
+If, so the logit-normal binomial model may be more appropriate:
+$$
+y_i \sim \text{Binomial}(\nu_i, \pi_i) \\
+\pi_i = \text{logit}^{-1}\left(\zeta_i\right) \\
+\zeta_i \sim \text{Gaussian}\left(z_i, \sigma_\text{ovds}\right)
+$$
+where the standard deviation $\sigma_\text{ovds}$ accounts for overdisperion 
+in the observation process.
+Note that for autoregressive formulations of the linear predictor,
+there may be limited identifiability for $\sigma_\text{proc}$ and $\sigma_\text{ovds}$ 
+when time series are short or poorly replicated.
 
-## Poisson
+While the binomial error distriubtion can be used for site-occupancy data,
+the state-space formulation of the model does not model discrete latent states
+(e.g., occupancy of a given site) at the previous time step.
+Rather, the latent states characterize the *probability* of occupancy on the logit-scale. 
+Therefore, temporal autocorrelation is modeled for the probability of occupancy,
+rather than for occupancy itself.
+Furthermore, the model does not quantify the probability of detection as such,
+although it does allow for imperfect observation (with or without overdispersion) 
+of the state of occupancy by virtue of its formulation 
+in terms of unobserved latent states $z_i$.
+In other words, the model does not characterize discrete site-occupancy processes.
+Instead, it models Gaussian autoregressive processes on the linear predictor scale 
+that can then be pararmeterized using observations of site occupancy, 
+modeled according to a binomial observation process.
+This approach may be most useful when the same latent occupancy probabilities are
+used for multiple sites,
+which is implicitly the case when $\nu_i > 1$ if each "trial" corresponds to a "site".
+However, this can also be implemented for $\nu_i = 1$ by using the "replicated observations"
+formulation in $\texttt{armm()}$.
 
-## Log-normal Poisson
+## Poisson and lognormal Poisson
+
+The Poisson distribution is available for count data $y_i \ge 0$,
+such as observations of population size. 
+The pointwise likelihood for observation $y_i$ is calculated as
+$$
+y_i \sim \text{Poisson}(\lambda_i) \\
+\lambda_i = \text{exp}(z_i).
+$$
+where $\lambda_i$ is the rate parameter, which also gives the mean of the distribution.
+The expected variance of the distribution also equals $\lambda_i$.
+The true variance among observations might exceed the expected variance due to 
+Poisson sampling error alone (i.e., overdispersion).
+If, so the lognormal Poisson model may be more appropriate:
+$$
+y_i \sim \text{Poisson}(\lambda_i) \\
+\lambda_i \sim \text{Lognormal}\left(z_i, \sigma_{\text{ovds}}\right).
+$$
+where $z_i$ is the mean and $\sigma_{\text{ovds}}$ the overdisperion standard deviation
+of a Gaussian distribution on the log scale.
+Note that for autoregressive formulations of the linear predictor,
+there may be limited identifiability for $\sigma_\text{proc}$ and $\sigma_\text{ovds}$ 
+when time series are short or poorly replicated.
+
+The state-space formulation of the Poisson model characterizes 
+the autoregressive process on the latent log scale, 
+and therefore the Poisson distribution applies only to the observation process
+(with or without overdispersion).
+In other words, the model does not include demographic stochasticity arising from 
+discrete demographic processes. 
 
 ## Negative Binomial
 
-## Zero-inflated (Poisson, Log-normal Poisson, Negative Binomial)
+The negative binomial distribution is available for count data $y_i \ge 0$,
+such as observations of population size. 
+The pointwise likelihood for observation $y_i$ is calculated 
+using the "mean" parameterization as
+$$
+y_i \sim \text{NegativeBinomial}(\lambda_i,\kappa) \\
+\lambda_i = \text{exp}(z_i).
+$$
+where $\lambda_i$ is the rate parameter (which also gives the mean of the distribution),
+and $\kappa > 0$ is the overdisperion relative to the square of the mean.
+Note that for autoregressive formulations of the linear predictor,
+there may be limited identifiability for $\sigma_\text{proc}$ and $\kappa$ 
+when time series are short or poorly replicated.
 
-## Hurdle (Poisson, Log-normal Poisson, Negative Binomial)
+The state-space formulation of the negative binomial model characterizes 
+the autoregressive process on the latent log scale, 
+and therefore the Poisson distribution applies only to the observation process
+(with or without overdispersion).
+In other words, the model does not include demographic stochasticity arising from 
+discrete demographic processes. 
 
-## Categorical-Logit
+The negative binomial model is similar to the lognormal Poisson model,
+as both involve mixtures between Poisson counting processes and some overdispersion
+process for the rate parameter. 
+However, the different parameterizations of overdispersion may lead to substantively 
+different inferences.
+
+## Zero-inflated and hurdle (Poisson, lognormal Poisson, negative binomial)
+
+Zero-inflated versions of the counting distributions 
+(Poisson, lognormal Poisson, Negative binomial) are available for data
+with an overabundance of zeros.
+They are formulated as complete mixtures between a Bernoulli process and a given counting 
+processes;
+for example the zero-inflated Poisson likelihood $\mathcal{L}_i$ is defined as
+$$
+\mathcal{L}_i = \begin{cases} 
+      \theta+(1-\theta) \times \text{Poisson}(0|\lambda_i) & y_i = 0\\
+      (1-\theta) \times \text{Poisson}(y_i|\lambda_i) & y_i > 0
+   \end{cases}
+$$
+where $\theta \in (0, 1)$ is the probability of a zero under the Bernoulli distribution.
+Because they are formulated as complete mixtures,
+zeros in zero-inflated models can either arise from the Bernoulli process or 
+the counting process. 
+This is the sense in which zeros are *inflated*;
+the fact that zeros arise both due to the counting process and due to an additional 
+Bernoulli process increases their prevelance relative to what would be the case 
+under the counting process alone.
+
+Hurdle models are similar to zero-inflated models, 
+however they are incomplete mixtures whereby zeros only arise through the Bernoulli process:
+$$
+\mathcal{L}_i = \begin{cases} 
+      \theta & y_i = 0 \\
+      (1-\theta) \times 
+        \frac{\text{Poisson}(y_i|\lambda_i)}{1-\text{CDF}\left(
+                        \text{Poisson}(0|\lambda_i)\right)} & y_i > 0
+   \end{cases}
+$$
+where $\text{CDF}$ denotes the cumulative density function. 
+Because all zeros are characterized as arising through the Bernoulli process,
+they can either be under- or overdispersed relative to the counting process.
+
+## Categorical-logit and Categorical-logit-normal
+
+The cateogrical-logit model is available for cases where each value 
+of the response variable takes one of a set of cateogrical outcomes,
+such as when a given site could be occupied by one of a fixed set of taxa.
+The pointwise likelihood for observation $y_i$ which takes one 
+of $K$ values is defined as
+$$
+\mathcal{L}_i =  \text{Categorical}(y_i = k|u_i) \\
+u_i = \frac{\exp(z_{k,i})}{\sum_j^K \exp(z_{j,i})}
+$$
+where $z_{j,i}$ is the $j^\text{th}$ value of a $K \times 1$ vector of linear
+predictor values $\mathbf{z}_i$.
+A separate set of linear predictor values with associated regression coefficients 
+is defined for of the $K$ possible states that could be occupied by $y_i$. 
+When the categorical observation process is overdispersed,
+it may be more appropriate to use logit-normal formulation:
+$$
+\mathcal{L}_i =  \text{Categorical}(y_i = k|u_i) \\
+u_i = \frac{\exp(\zeta_{k,i})}{\sum_j^K \exp(\zeta_{j,i})} \\
+\zeta_{j,i} \sim \text{Gaussian}(z_{j,i}, \sigma_{ovds})
+$$
+
+While the categorical-logit model can be used for site-occupancy data,
+the state-space formulation of the model does not model discrete latent states
+(e.g., occupancy of a given site) at the previous time step.
+Rather, the latent states characterize the *probability* of occupancy by a given category
+(e.g. taxon) on the logit scale.
+Temporal autocorrelation is therefore modeled for the latent probability of occupancy
+of a given category, on the logit scale.
+These latent occupancy probabilities can then be pararmeterized using observations of site occupancy, modeled according to a categorical observation process.
+This approach may be most useful when the same latent occupancy probabilities for 
+a given category are used for multiple sites,
+which can be implemented in $\texttt{armm()}$ by using the "replicated observations".
+
+The binomial and categorical-logit models are closely related and can be applied to similar
+types of data. 
+However, the categorical-logit model is constrained to the case where the categorical
+observation process occurs for all possible categories (e.g., taxa) simultaneously,
+which means that only a single category can occupy a given site (or analogue).
+In contrast, the binomial model can be formulated so that the binomial observation process
+occurs for each category separately by specifying those categories 
+as either categorical fixed effects or as grouping variables in the random effects, 
+such that multiple categories could be present at a given site.
+
+# Priors
