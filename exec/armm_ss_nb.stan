@@ -23,7 +23,7 @@ parameters {
     real<lower=0> sig_beta[sum(g_per_ff)];      // group standard deviations
     real ze[n_obs - n_ts];                      // random deviates for proc. error
     real<lower=0> sig_proc;                     // process error standard deviation
-    real<lower=0> kappa;                        // overdisperson parameter
+    real<lower=0> omega;                        // overdisperson parameter
 }
 transformed parameters {
     real beta[n_ts,n_coef]; // coefficients
@@ -83,15 +83,15 @@ model {
     }
     ze ~ normal(0, 1);
     sig_proc ~ gamma(1.5, 3);
-    kappa ~ gamma(1.5, 3);
+    omega ~ gamma(1.5, 3);
     // likelihood:
-    y ~ neg_binomial_2_log(ly_pred, kappa);
+    y ~ neg_binomial_2_log(ly_pred, 1 / omega);
 }
 generated quantities {
   real log_lik[n_obs];
   real log_lik_sum;
   for(i in 1:n_obs){
-    log_lik[i] = neg_binomial_2_log_lpmf(y[i] | ly_pred[i], kappa);
+    log_lik[i] = neg_binomial_2_log_lpmf(y[i] | ly_pred[i], 1 / omega);
   }
   log_lik_sum = sum(log_lik);
 }

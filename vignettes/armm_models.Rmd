@@ -101,10 +101,10 @@ such as percent cover of a given area by a given taxon.
 The pointwise likelihood for observation $y_i$ is calculated 
 using the "proportion" parameterization as
 $$
-y_i \sim \text{Beta}(\mu_i,\kappa) \\
+y_i \sim \text{Beta}(\mu_i,1/ \omega) \\
 \mu_i = \text{logit}^{-1}(z_i).
 $$
-with mean $u_i$ and precision $\kappa > 0$. 
+with mean $u_i$ and overdispersion $\omega  > 0$.
 Note that the likelihood equals 0 (and log-likelihood equals $-\infty$) 
 when $y_i=0$ or $y_i=1$.
 Therefore, $\texttt{armm()}$ restricts $0 < y_i < 1$.
@@ -209,11 +209,11 @@ such as observations of population size.
 The pointwise likelihood for observation $y_i$ is calculated 
 using the "mean" parameterization as
 $$
-y_i \sim \text{NegativeBinomial}(\lambda_i,\kappa) \\
+y_i \sim \text{NegativeBinomial}(\lambda_i, 1 / \omega) \\
 \lambda_i = \text{exp}(z_i).
 $$
 where $\lambda_i$ is the rate parameter (which also gives the mean of the distribution),
-and $\kappa > 0$ is the overdisperion relative to the square of the mean.
+and $\omega > 0$ is the overdisperion relative to the square of the mean.
 Note that for autoregressive formulations of the linear predictor,
 there may be limited identifiability for $\sigma_\text{proc}$ and $\kappa$ 
 when time series are short or poorly replicated.
@@ -314,3 +314,29 @@ as either categorical fixed effects or as grouping variables in the random effec
 such that multiple categories could be present at a given site.
 
 # Priors
+
+## Fixed effects 
+
+Gaussian; default $\mu = 0$ and $\sigma = 1$.
+Separate prior paraemterizations can be set for each fixed effect, 
+which is particularly useful for intercepts for models with log or logit link functions.
+
+## Standard deviations and overdisperions
+
+Gamma; default $\alpha = 1.5$ and $\beta = 3$.
+The default prior implies the distribution has mean of 0.5.
+Setting $\alpha = 1.5$ gives the distribution zero density at zero and makes it concave
+down as it approaches zero. 
+This allows the distribution to be arbitrarily close to zero while not being artifically
+drawn towards zero.
+
+## Autoregressive parameter
+
+Either beta with default $\alpha = \beta = 2$ and 
+or (truncated) Gaussian with default $\mu = 0.5$ and $\sigma = 0.5$.
+The former constrains $0 < \phi < 1$.
+The latter can be optionally truncated from the left, the right, or both.
+While $\phi$ can be defined on $(-\infty, \infty)$, 
+constraints can be useful as $\phi < 0$ implies quasi-cycles while $\phi > 1$
+implies non-stationarity. 
+

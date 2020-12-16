@@ -1,7 +1,7 @@
 data {
     // indices
-    int n_obs;                          // # observations (for each ts)
-    int n_obs_rep;                      // # observations (replicated for each ts)
+    int n_steps;                        // # time steps across all time series
+    int n_obs;                          // # observations
     int n_ts;                           // # time series
     int obs_per[n_ts];                  // # observations per time series
     int n_coef;                         // # coefficients (fixed effects + intercepts)
@@ -12,10 +12,10 @@ data {
     int<lower=0, upper=1> change;       // logical for parameterization
                                         // (0 = predict mean; 1 = predict change);
     // data
-    int<lower=1, upper=n_obs> y_map[n_obs_rep]; // map predicted values to response variable
-    real y[n_obs_rep];                  // response variables
-    real x[n_obs, n_coef];              // predictor variables
-    real<lower=0> time[n_obs];          // response variable times
+    int<lower=1, upper=n_steps> y_map[n_obs]; // map predicted values to response variable
+    real y[n_obs];                  // response variables
+    real x[n_steps, n_coef];              // predictor variables
+    real<lower=0> time[n_steps];          // response variable times
     real<lower=0> p_bound;              // upper bound for phis
 }
 parameters {
@@ -23,13 +23,13 @@ parameters {
     real z[sum(lev_per_g)];                     // standardized variates for group levels
     real<lower=0, upper=p_bound> phi[max(p_groups)];  // autoregressive parameter for each
     real<lower=0> sig_beta[sum(g_per_ff)];      // group standard deviations
-    real ze[n_obs - n_ts];                      // random deviates for proc. error
+    real ze[n_steps - n_ts];                      // random deviates for proc. error
     real<lower=0> sig_proc;                     // process error standard deviation
     real<lower=0> sig_obs;                      // observation error standard deviation
 }
 transformed parameters {
     real beta[n_ts,n_coef]; // coefficients
-    real y_pred[n_obs];     // predicted values
+    real y_pred[n_steps];     // predicted values
     {
         int xy_pos = 1;         // position in x and y vectors
         // loop over time series:
@@ -90,9 +90,9 @@ model {
     y ~ normal(y_pred[y_map], sig_obs);
 }
 generated quantities {
-  real log_lik[n_obs];
+  real log_lik[n_steps];
   real log_lik_sum;
-  for(i in 1:n_obs_rep){
+  for(i in 1:n_obs){
     log_lik[i] = normal_lpdf(y[i] | y_pred[y_map[i]], sig_obs);
   }
   log_lik_sum = sum(log_lik);
