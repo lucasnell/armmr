@@ -1,6 +1,4 @@
 
-
-
 #' Version of lapply that returns the list flattened to a vector or array.
 #'
 #' @noRd
@@ -951,6 +949,10 @@ armm <- function(formula,
     }
     if (inherits(data, c("data.frame", "list"))) {
         data <- list2env(data)
+    } else if (inherits(data, "environment")) {
+        # Clone environment:
+        data <- as.environment(as.list(data, all.names = TRUE))
+        parent.env(data) <- globalenv()
     }
 
     # Check for proper inputs:
@@ -1063,8 +1065,18 @@ armm <- function(formula,
         stan_fit <- do.call(rstan::optimizing, rstan_control)
     }
 
+    # Constrain the `data` env to only contain objects inside the formulas
+    pars <- list(formula, time_form, ar_form, y_scale)
+    pars <- lapply(pars, function(x) if (inherits(x, "formula")) all.vars(x) else x)
+    pars <- unique(do.call(c, pars))
+    rm_objs <- ls(envir = data, all.names = TRUE)
+    rm_objs <- rm_objs[!rm_objs %in% pars]
+    rm(list = rm_objs, envir = data)
+    ls(envir = data, all.names = TRUE)
+
+
     armmMod_obj <- new_armmMod(stan_fit, call_, hmc, x_means_sds,
-                               y_means_sds, stan_data)
+                               y_means_sds, stan_data, data)
 
     # Add AR and random-term names:
     armmMod_obj$ar_names <- ar_names

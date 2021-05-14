@@ -1,11 +1,16 @@
 
 
-new_armmMod <- function(.stan, .call, .hmc, .x_means_sds, .y_means_sds, .stan_data) {
+new_armmMod <- function(.stan, .call, .hmc, .x_means_sds, .y_means_sds,
+                        .stan_data, .orig_data) {
 
     stopifnot(inherits(.call, "call"))
     stopifnot(inherits(.hmc, "logical"))
     stopifnot(is.null(.x_means_sds) || inherits(.x_means_sds, "data.frame"))
     stopifnot(is.null(.y_means_sds) || inherits(.y_means_sds, "data.frame"))
+    stopifnot(inherits(.orig_data, "environment"))
+
+    # Convert from environment to data.frame for storage:
+    .orig_data <- as.data.frame(do.call(cbind, as.list(.orig_data)))
 
     # So it doesn't show the whole function if using do.call:
     if (.call[1] != as.call(quote(armm()))) {
@@ -13,11 +18,12 @@ new_armmMod <- function(.stan, .call, .hmc, .x_means_sds, .y_means_sds, .stan_da
     }
 
     armm_obj <- structure(list(stan = .stan, call = .call,
-                              hmc = .hmc,
-                              x_means_sds = .x_means_sds,
-                              y_means_sds = .y_means_sds,
-                              stan_data = .stan_data),
-                         class = "armmMod")
+                               hmc = .hmc,
+                               x_means_sds = .x_means_sds,
+                               y_means_sds = .y_means_sds,
+                               stan_data = .stan_data,
+                               orig_data = .orig_data),
+                          class = "armmMod")
 
     return(armm_obj)
 
@@ -348,16 +354,13 @@ autoreg.armmMod <- function(object,
     if (is.null(eval(object$call$ar_form))) return(NULL)
 
     se_method <- match.arg(tolower(se_method), c("quantile", "hpdi"))
-    # Add `+0` to get all levels of groups:
-    new_form <- as.formula(paste0(deparse(eval(object$call$ar_form)), "+0"))
-    ar_names <- colnames(model.matrix(new_form, eval(object$call$data)))
     phis <- rstan::extract(object$stan, "phi")[[1]]
 
     SEs <- bayesian_se(phis, se_method)
 
     autoreg_df <- data.frame(Median = apply(phis, 2, median),
                              `Std.Error` = SEs)
-    rownames(autoreg_df) <- ar_names
+    rownames(autoreg_df) <- object$ar_names
     return(autoreg_df)
 }
 
@@ -495,8 +498,9 @@ nobs.armmMod <- function(object, ...) {
 #'
 #' @export
 family.armmMod <- function(object, ...) {
-    fam <- ifelse(is.null(object$call$family), formals(armm)[["family"]],
-                 object$call$family)
+    fam <- if (is.null(object$call$family)) {
+        formals(armm)[["family"]]
+    } else object$call$family
     return(fam)
 }
 
@@ -524,4 +528,25 @@ pp_check.armmMod <- function(object, ...) {
 
     return(p)
 
+}
+
+
+
+
+#' Estimates the marginal parameter mode using kernel density estimation
+#'
+#' @param x numeric vector of posteriors
+#' @param adjust numeric, passed to density to adjust the bandwidth of the
+#'     kernal density
+#' @param ... other parameters to pass to `density`
+#'
+#' @export
+#'
+posterior_mode <- function (x, adjust = 0.1, ...) {
+    if (is.numeric(x) == FALSE & !is.null(dim(x))) {
+        warning("posterior_mode expects a numeric vector")
+    }
+    dx <- density(x, adjust = adjust, ...)
+    .mode <- dx$x[which.max(dx$y)]
+    return(.mode)
 }
