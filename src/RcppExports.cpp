@@ -61,7 +61,9 @@ RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_lnb_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_lnp_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_nb_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_p_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_priors_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_reps_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_timehack_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zilnp_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zinb_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4armm_ss_zip_mod();
@@ -83,7 +85,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_stan_fit4armm_ss_lnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_lnp_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_nb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_nb_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_p_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_p_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_priors_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_priors_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_reps_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_reps_mod, 0},
+    {"_rcpp_module_boot_stan_fit4armm_ss_timehack_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_timehack_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_zilnp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zilnp_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_zinb_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zinb_mod, 0},
     {"_rcpp_module_boot_stan_fit4armm_ss_zip_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4armm_ss_zip_mod, 0},
