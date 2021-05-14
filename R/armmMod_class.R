@@ -10,7 +10,7 @@ new_armmMod <- function(.stan, .call, .hmc, .x_means_sds, .y_means_sds,
     stopifnot(inherits(.orig_data, "environment"))
 
     # Convert from environment to data.frame for storage:
-    .orig_data <- as.data.frame(do.call(cbind, as.list(.orig_data)))
+    .orig_data <- as.data.frame(as.list(.orig_data))
 
     # So it doesn't show the whole function if using do.call:
     if (.call[1] != as.call(quote(armm()))) {
